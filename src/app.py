@@ -2,15 +2,16 @@ from flask import Flask, render_template
 from src.database import db
 from src.api.book_api import book_api
 from src.api.settings_api import settings_api
-from config.config import Config
+from config.config import config
 import os
 
-def create_app():
+def create_app(config_name='default'):
     app = Flask(__name__, 
                 template_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src/templates'),
                 static_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src/static'))
     
-    app.config.from_object(Config)
+    # 加载配置
+    app.config.from_object(config[config_name])
     
     # 初始化数据库
     db.init_app(app)
