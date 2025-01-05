@@ -107,16 +107,16 @@ class TranslationQueueManager {
             this.updateQueueDisplay();
 
             // 调用翻译API
-            const response = await fetch(`/api/translate/${task.fragmentId}`, {
+            const response = await fetch(`/api/translate_fragment/${task.bookId}/${task.fragmentId}`, {
                 method: 'POST'
             });
 
-            const result = await response.json();
-
             if (!response.ok) {
+                const result = await response.json();
                 throw new Error(result.error || '翻译请求失败');
             }
 
+            const result = await response.json();
             console.log('翻译成功:', result);
             this.addLogMessage(`翻译成功: ${task.bookName} - 片段 #${task.fragmentId}`);
 

@@ -376,7 +376,7 @@ def translate_fragment(book_id, fragment_id):
         fragment = Fragment.query.filter_by(id=fragment_id, book_id=book_id).first_or_404()
         
         # 如果已经翻译过，直接返回成功
-        if fragment.translated_content is not None:
+        if fragment.translated_text is not None and fragment.translated_text != "":
             return jsonify({'message': '片段已翻译'}), 200
         
         # 获取翻译设置
@@ -389,16 +389,15 @@ def translate_fragment(book_id, fragment_id):
             return jsonify({'error': '请先设置翻译参数'}), 400
         
         # 执行翻译
-        translation_service = TranslationService()
         translated_text = translation_service.translate(
-            fragment.content,
+            fragment.original_text,
             target_lang=settings['settings']['target_language'],
             style=settings['settings']['translation_style'],
             custom_prompt=settings['settings'].get('custom_prompt')
         )
         
         # 保存翻译结果
-        fragment.translated_content = translated_text
+        fragment.translated_text = translated_text
         db.session.commit()
         
         return jsonify({'message': '翻译成功'})
