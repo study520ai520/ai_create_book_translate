@@ -302,10 +302,6 @@ class GlobalSettingsManager {
         document.getElementById('templateModalTitle').textContent = '添加模板';
         document.getElementById('templateForm').reset();
         document.getElementById('templateId').value = '';
-        document.getElementById('templateName').disabled = false;
-        document.getElementById('templateDescription').disabled = false;
-        document.getElementById('templateContent').disabled = false;
-        document.querySelector('#templateModal .modal-footer .btn-primary').style.display = 'block';
         new bootstrap.Modal(document.getElementById('templateModal')).show();
     }
 
@@ -327,7 +323,7 @@ class GlobalSettingsManager {
             document.getElementById('templateName').disabled = isSystem;
             document.getElementById('templateDescription').disabled = isSystem;
             document.getElementById('templateContent').disabled = isSystem;
-            document.querySelector('#templateModal .modal-footer .btn-primary').style.display = isSystem ? 'none' : 'block';
+            document.getElementById('saveTemplateBtn').style.display = isSystem ? 'none' : 'block';
             
             new bootstrap.Modal(document.getElementById('templateModal')).show();
         } catch (error) {
@@ -374,16 +370,13 @@ class GlobalSettingsManager {
                     method: 'DELETE'
                 });
                 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || '删除模板失败');
-                }
+                if (!response.ok) throw new Error('删除模板失败');
                 
                 await this.loadTemplates();
                 showToast('删除成功');
             } catch (error) {
                 console.error('删除模板失败:', error);
-                showToast(error.message || '删除模板失败', 'error');
+                showToast('删除模板失败', 'error');
             }
         }
     }
