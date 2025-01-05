@@ -26,6 +26,11 @@ class GlobalSettingsManager {
                 }
             });
         });
+
+        // 监听保存按钮点击事件
+        document.getElementById('saveLanguageBtn')?.addEventListener('click', () => this.saveLanguage());
+        document.getElementById('saveStyleBtn')?.addEventListener('click', () => this.saveStyle());
+        document.getElementById('saveTemplateBtn')?.addEventListener('click', () => this.saveTemplate());
     }
 
     // 初始化设置

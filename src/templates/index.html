@@ -711,7 +711,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" onclick="saveLanguage()">保存</button>
+                    <button type="button" class="btn btn-primary" id="saveLanguageBtn">保存</button>
                 </div>
             </div>
         </div>
@@ -744,7 +744,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" onclick="saveStyle()">保存</button>
+                    <button type="button" class="btn btn-primary" id="saveStyleBtn">保存</button>
                 </div>
             </div>
         </div>
@@ -752,7 +752,7 @@
 
     <!-- 添加/编辑模板模态框 -->
     <div class="modal fade" id="templateModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="templateModalTitle">添加模板</h5>
@@ -767,7 +767,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="templateDescription" class="form-label">描述</label>
-                            <textarea class="form-control" id="templateDescription" rows="2"></textarea>
+                            <textarea class="form-control" id="templateDescription" rows="3"></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="templateContent" class="form-label">模板内容</label>
@@ -784,7 +784,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" onclick="saveTemplate()">保存</button>
+                    <button type="button" class="btn btn-primary" id="saveTemplateBtn">保存</button>
                 </div>
             </div>
         </div>
