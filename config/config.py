@@ -22,18 +22,18 @@ class Config:
     ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx'}
     
     # OpenAI配置
-    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
-    OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
-    OPENAI_API_BASE = os.getenv('OPENAI_API_BASE', '')
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')  # 必需的配置，不提供默认值
+    OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')  # 默认使用 gpt-3.5-turbo
+    OPENAI_API_BASE = os.getenv('OPENAI_API_BASE')  # API基础URL，根据需要配置
     OPENAI_API_TYPE = os.getenv('OPENAI_API_TYPE', 'open_ai')
-    OPENAI_API_VERSION = os.getenv('OPENAI_API_VERSION', '')
-    OPENAI_ORGANIZATION = os.getenv('OPENAI_ORGANIZATION', '')
-    OPENAI_PROXY = os.getenv('OPENAI_PROXY', '')
+    OPENAI_API_VERSION = os.getenv('OPENAI_API_VERSION')
+    OPENAI_ORGANIZATION = os.getenv('OPENAI_ORGANIZATION')
+    OPENAI_PROXY = os.getenv('OPENAI_PROXY')
     
     # 翻译配置
-    TIMEOUT = 60  # API调用超时时间（秒）
-    TEMPERATURE = 0.7  # 生成文本的随机性
-    MAX_TOKENS_PER_REQUEST = 1500  # 每次请求的最大token数
+    TIMEOUT = int(os.getenv('TIMEOUT', '60'))  # API调用超时时间（秒）
+    TEMPERATURE = float(os.getenv('TEMPERATURE', '0.7'))  # 生成文本的随机性
+    MAX_TOKENS_PER_REQUEST = int(os.getenv('MAX_TOKENS_PER_REQUEST', '1500'))  # 每次请求的最大token数
 
 class DevelopmentConfig(Config):
     DEBUG = True
