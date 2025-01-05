@@ -2,12 +2,16 @@ import os
 import docx
 import PyPDF2
 import pdfplumber
-import magic
+from magic import Magic
 from werkzeug.utils import secure_filename
 from config.config import Config
 
 class DocumentService:
     """文档处理服务"""
+    
+    def __init__(self):
+        """初始化Magic实例"""
+        self.magic = Magic(mime=True)
     
     @staticmethod
     def allowed_file(filename):
@@ -24,13 +28,13 @@ class DocumentService:
 
     def extract_text(self, filepath):
         """从不同格式的文档中提取文本"""
-        file_type = magic.from_file(filepath, mime=True)
+        file_type = self.magic.from_file(filepath)
         
-        if file_type == 'application/pdf':
+        if 'pdf' in file_type.lower():
             return self._extract_from_pdf(filepath)
-        elif file_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        elif 'microsoft word' in file_type.lower() or 'openxmlformats-officedocument' in file_type.lower():
             return self._extract_from_docx(filepath)
-        elif file_type == 'text/plain':
+        elif 'text' in file_type.lower():
             return self._extract_from_txt(filepath)
         else:
             raise ValueError(f'不支持的文件类型: {file_type}')
