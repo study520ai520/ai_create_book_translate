@@ -612,18 +612,25 @@
 
         // 翻译单个碎片
         function translateFragment(fragmentId) {
-            toggleLoading(true);
+            showTranslationLog();
+            showLog('开始翻译片段...');
+            
             fetch(`/translate/${fragmentId}`, {
                 method: 'POST'
             })
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
+                    showLog('片段翻译完成！', 'progress');
                     loadBooks();
                     loadFragments(currentBookId);
+                } else {
+                    showLog(`翻译出错: ${result.error}`, 'error');
                 }
             })
-            .finally(() => toggleLoading(false));
+            .catch(error => {
+                showLog(`发生错误: ${error}`, 'error');
+            });
         }
 
         // 添加日志显示函数
@@ -650,7 +657,6 @@
                 function() {
                     showTranslationLog();
                     showLog('开始翻译...');
-                    toggleLoading(true);
 
                     // 开始轮询翻译进度
                     const progressInterval = setInterval(() => {
@@ -683,32 +689,52 @@
                     .catch(error => {
                         clearInterval(progressInterval);
                         showLog(`发生错误: ${error}`, 'error');
-                    })
-                    .finally(() => toggleLoading(false));
+                    });
                 }
             );
         }
 
-        // 重新翻译所有碎片
+        // 修改重新翻译函数
         function retranslateAll(bookId) {
             showConfirm(
                 '重新翻译确认',
                 '确定要重新翻译所有碎片吗？这将清空现有翻译内容，且需要一些时间。',
                 function() {
-                    toggleLoading(true);
+                    showTranslationLog();
+                    showLog('开始重新翻译...');
+
+                    // 开始轮询翻译进度
+                    const progressInterval = setInterval(() => {
+                        fetch(`/translation_progress/${bookId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.total > 0) {
+                                    const progress = Math.round((data.completed / data.total) * 100);
+                                    showLog(`翻译进度: ${progress}% (${data.completed}/${data.total})`);
+                                }
+                            });
+                    }, 1000);
+
                     fetch(`/retranslate/${bookId}`, {
                         method: 'POST'
                     })
                     .then(response => response.json())
                     .then(result => {
+                        clearInterval(progressInterval);
                         if (result.success) {
+                            showLog('重新翻译完成！', 'progress');
                             loadBooks();
                             if (currentBookId === bookId) {
                                 loadFragments(bookId);
                             }
+                        } else {
+                            showLog(`翻译出错: ${result.error}`, 'error');
                         }
                     })
-                    .finally(() => toggleLoading(false));
+                    .catch(error => {
+                        clearInterval(progressInterval);
+                        showLog(`发生错误: ${error}`, 'error');
+                    });
                 }
             );
         }
