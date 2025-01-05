@@ -341,3 +341,56 @@ def delete_book(book_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500 
+
+@book_api.route('/untranslated_fragments/<int:book_id>', methods=['GET'])
+def get_untranslated_fragments(book_id):
+    """获取未翻译的片段"""
+    try:
+        book = Book.query.get_or_404(book_id)
+        fragments = Fragment.query.filter_by(book_id=book_id, translated_content=None).all()
+        return jsonify([{
+            'id': f.id,
+            'content': f.content
+        } for f in fragments])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@book_api.route('/translate_fragment/<int:book_id>/<int:fragment_id>', methods=['POST'])
+def translate_fragment(book_id, fragment_id):
+    """翻译单个片段"""
+    try:
+        # 获取书籍和片段
+        book = Book.query.get_or_404(book_id)
+        fragment = Fragment.query.filter_by(id=fragment_id, book_id=book_id).first_or_404()
+        
+        # 如果已经翻译过，直接返回成功
+        if fragment.translated_content is not None:
+            return jsonify({'message': '片段已翻译'}), 200
+        
+        # 获取翻译设置
+        settings_response = get_translation_settings(book_id)
+        if settings_response.status_code != 200:
+            return settings_response
+        
+        settings = settings_response.get_json()
+        if not settings.get('has_settings'):
+            return jsonify({'error': '请先设置翻译参数'}), 400
+        
+        # 执行翻译
+        translation_service = TranslationService()
+        translated_text = translation_service.translate(
+            fragment.content,
+            target_lang=settings['settings']['target_language'],
+            style=settings['settings']['translation_style'],
+            custom_prompt=settings['settings'].get('custom_prompt')
+        )
+        
+        # 保存翻译结果
+        fragment.translated_content = translated_text
+        db.session.commit()
+        
+        return jsonify({'message': '翻译成功'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400 
