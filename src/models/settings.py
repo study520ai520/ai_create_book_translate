@@ -1,7 +1,7 @@
 from src.database import db
 
 class TranslationLanguage(db.Model):
-    """翻译语言设置"""
+    """翻译语言模型"""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
     description = db.Column(db.String(200))
@@ -16,7 +16,7 @@ class TranslationLanguage(db.Model):
         }
 
 class TranslationStyle(db.Model):
-    """翻译风格设置"""
+    """翻译风格模型"""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
     description = db.Column(db.String(200))
@@ -31,13 +31,13 @@ class TranslationStyle(db.Model):
         }
 
 class PromptTemplate(db.Model):
-    """提示词模板设置"""
+    """提示词模板模型"""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
     description = db.Column(db.String(200))
     template = db.Column(db.Text, nullable=False)
-    is_enabled = db.Column(db.Boolean, default=True)
-    is_system = db.Column(db.Boolean, default=False)  # 是否是系统预设模板
+    is_system = db.Column(db.Boolean, default=False)  # 是否为系统预设模板
+    is_enabled = db.Column(db.Boolean, default=True)  # 是否启用
     
     def to_dict(self):
         return {

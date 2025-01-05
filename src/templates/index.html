@@ -588,66 +588,95 @@
         </div>
     </div>
 
-    <!-- 添加设置管理模态框 -->
-    <div class="modal fade settings-modal" id="settingsModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+    <!-- 设置管理模态框 -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-gear"></i> 系统设置
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="settingsModalLabel">全局设置管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- 选项卡导航 -->
                     <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#languagesTab">
-                                目标语言管理
-                            </button>
+                            <button class="nav-link active" id="languages-tab" data-bs-toggle="tab" data-bs-target="#languages" type="button" role="tab">目标语言</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#stylesTab">
-                                翻译风格管理
-                            </button>
+                            <button class="nav-link" id="styles-tab" data-bs-toggle="tab" data-bs-target="#styles" type="button" role="tab">翻译风格</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#templatesTab">
-                                提示词模板管理
-                            </button>
+                            <button class="nav-link" id="templates-tab" data-bs-toggle="tab" data-bs-target="#templates" type="button" role="tab">提示词模板</button>
                         </li>
                     </ul>
-                    <div class="tab-content">
-                        <!-- 目标语言管理 -->
-                        <div class="tab-pane fade show active" id="languagesTab">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">目标语言列表</h6>
-                                <button class="btn btn-primary btn-sm" onclick="showAddLanguageModal()">
-                                    <i class="bi bi-plus"></i> 添加语言
-                                </button>
+                    
+                    <!-- 选项卡内容 -->
+                    <div class="tab-content mt-3" id="settingsTabContent">
+                        <!-- 目标语言设置 -->
+                        <div class="tab-pane fade show active" id="languages" role="tabpanel">
+                            <div class="d-flex justify-content-end mb-3">
+                                <button class="btn btn-primary" onclick="showAddLanguageModal()">添加语言</button>
                             </div>
-                            <div class="settings-list" id="languagesList"></div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>名称</th>
+                                            <th>描述</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="languagesTableBody">
+                                        <!-- 语言列表将通过JavaScript动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         
-                        <!-- 翻译风格管理 -->
-                        <div class="tab-pane fade" id="stylesTab">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">翻译风格列表</h6>
-                                <button class="btn btn-primary btn-sm" onclick="showAddStyleModal()">
-                                    <i class="bi bi-plus"></i> 添加风格
-                                </button>
+                        <!-- 翻译风格设置 -->
+                        <div class="tab-pane fade" id="styles" role="tabpanel">
+                            <div class="d-flex justify-content-end mb-3">
+                                <button class="btn btn-primary" onclick="showAddStyleModal()">添加风格</button>
                             </div>
-                            <div class="settings-list" id="stylesList"></div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>名称</th>
+                                            <th>描述</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stylesTableBody">
+                                        <!-- 风格列表将通过JavaScript动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         
-                        <!-- 提示词模板管理 -->
-                        <div class="tab-pane fade" id="templatesTab">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">提示词模板列表</h6>
-                                <button class="btn btn-primary btn-sm" onclick="showAddTemplateModal()">
-                                    <i class="bi bi-plus"></i> 添加模板
-                                </button>
+                        <!-- 提示词模板设置 -->
+                        <div class="tab-pane fade" id="templates" role="tabpanel">
+                            <div class="d-flex justify-content-end mb-3">
+                                <button class="btn btn-primary" onclick="showAddTemplateModal()">添加模板</button>
                             </div>
-                            <div class="settings-list" id="templatesList"></div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>名称</th>
+                                            <th>描述</th>
+                                            <th>类型</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="templatesTableBody">
+                                        <!-- 模板列表将通过JavaScript动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -655,28 +684,28 @@
         </div>
     </div>
 
-    <!-- 添加语言模态框 -->
-    <div class="modal fade" id="languageFormModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <!-- 添加/编辑语言模态框 -->
+    <div class="modal fade" id="languageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="languageFormTitle">添加语言</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="languageModalTitle">添加语言</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="languageForm">
                         <input type="hidden" id="languageId">
                         <div class="mb-3">
-                            <label class="form-label">语言名称</label>
+                            <label for="languageName" class="form-label">语言名称</label>
                             <input type="text" class="form-control" id="languageName" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">描述</label>
-                            <textarea class="form-control" id="languageDescription" rows="2"></textarea>
+                            <label for="languageDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="languageDescription" rows="3"></textarea>
                         </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="languageEnabled" checked>
-                            <label class="form-check-label">启用</label>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="languageEnabled" checked>
+                            <label class="form-check-label" for="languageEnabled">启用</label>
                         </div>
                     </form>
                 </div>
@@ -688,28 +717,28 @@
         </div>
     </div>
 
-    <!-- 添加风格模态框 -->
-    <div class="modal fade" id="styleFormModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <!-- 添加/编辑风格模态框 -->
+    <div class="modal fade" id="styleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="styleFormTitle">添加风格</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="styleModalTitle">添加风格</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="styleForm">
                         <input type="hidden" id="styleId">
                         <div class="mb-3">
-                            <label class="form-label">风格名称</label>
+                            <label for="styleName" class="form-label">风格名称</label>
                             <input type="text" class="form-control" id="styleName" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">描述</label>
-                            <textarea class="form-control" id="styleDescription" rows="2"></textarea>
+                            <label for="styleDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="styleDescription" rows="3"></textarea>
                         </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="styleEnabled" checked>
-                            <label class="form-check-label">启用</label>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="styleEnabled" checked>
+                            <label class="form-check-label" for="styleEnabled">启用</label>
                         </div>
                     </form>
                 </div>
@@ -721,32 +750,35 @@
         </div>
     </div>
 
-    <!-- 添加模板模态框 -->
-    <div class="modal fade" id="templateFormModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <!-- 添加/编辑模板模态框 -->
+    <div class="modal fade" id="templateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="templateFormTitle">添加模板</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="templateModalTitle">添加模板</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="templateForm">
                         <input type="hidden" id="templateId">
                         <div class="mb-3">
-                            <label class="form-label">模板名称</label>
+                            <label for="templateName" class="form-label">模板名称</label>
                             <input type="text" class="form-control" id="templateName" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">描述</label>
+                            <label for="templateDescription" class="form-label">描述</label>
                             <textarea class="form-control" id="templateDescription" rows="2"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">提示词模板</label>
-                            <textarea class="form-control" id="templateContent" rows="4" required></textarea>
+                            <label for="templateContent" class="form-label">模板内容</label>
+                            <textarea class="form-control" id="templateContent" rows="10" required></textarea>
+                            <small class="form-text text-muted">
+                                可用变量：{text} - 原文内容，{target_language} - 目标语言，{translation_style} - 翻译风格
+                            </small>
                         </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="templateEnabled" checked>
-                            <label class="form-check-label">启用</label>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="templateEnabled" checked>
+                            <label class="form-check-label" for="templateEnabled">启用</label>
                         </div>
                     </form>
                 </div>
@@ -822,9 +854,9 @@
 
             // 初始化设置相关模态框
             settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
-            languageFormModal = new bootstrap.Modal(document.getElementById('languageFormModal'));
-            styleFormModal = new bootstrap.Modal(document.getElementById('styleFormModal'));
-            templateFormModal = new bootstrap.Modal(document.getElementById('templateFormModal'));
+            languageFormModal = new bootstrap.Modal(document.getElementById('languageModal'));
+            styleFormModal = new bootstrap.Modal(document.getElementById('styleModal'));
+            templateFormModal = new bootstrap.Modal(document.getElementById('templateModal'));
         });
 
         // 显示/隐藏加载动画
@@ -1268,27 +1300,21 @@
             fetch('/api/languages')
                 .then(response => response.json())
                 .then(languages => {
-                    const languagesList = document.getElementById('languagesList');
+                    const languagesList = document.getElementById('languagesTableBody');
                     languagesList.innerHTML = languages.map(lang => `
-                        <div class="settings-item">
-                            <div class="settings-item-info">
-                                <div class="settings-item-title">${lang.name}</div>
-                                <div class="settings-item-description">${lang.description || ''}</div>
-                            </div>
-                            <div class="settings-item-actions">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" 
-                                           ${lang.is_enabled ? 'checked' : ''}
-                                           onchange="toggleLanguage(${lang.id}, this.checked)">
-                                </div>
-                                <button class="btn btn-sm btn-outline-primary" onclick="editLanguage(${lang.id})">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteLanguage(${lang.id})">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </div>
+                        <tr>
+                            <td>${lang.name}</td>
+                            <td>${lang.description || ''}</td>
+                            <td>
+                                <span class="badge ${lang.is_enabled ? 'bg-success' : 'bg-secondary'}">
+                                    ${lang.is_enabled ? '启用' : '禁用'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editLanguage(${lang.id})">编辑</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteLanguage(${lang.id})">删除</button>
+                            </td>
+                        </tr>
                     `).join('');
                 });
         }
@@ -1298,27 +1324,21 @@
             fetch('/api/styles')
                 .then(response => response.json())
                 .then(styles => {
-                    const stylesList = document.getElementById('stylesList');
+                    const stylesList = document.getElementById('stylesTableBody');
                     stylesList.innerHTML = styles.map(style => `
-                        <div class="settings-item">
-                            <div class="settings-item-info">
-                                <div class="settings-item-title">${style.name}</div>
-                                <div class="settings-item-description">${style.description || ''}</div>
-                            </div>
-                            <div class="settings-item-actions">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" 
-                                           ${style.is_enabled ? 'checked' : ''}
-                                           onchange="toggleStyle(${style.id}, this.checked)">
-                                </div>
-                                <button class="btn btn-sm btn-outline-primary" onclick="editStyle(${style.id})">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteStyle(${style.id})">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </div>
+                        <tr>
+                            <td>${style.name}</td>
+                            <td>${style.description || ''}</td>
+                            <td>
+                                <span class="badge ${style.is_enabled ? 'bg-success' : 'bg-secondary'}">
+                                    ${style.is_enabled ? '启用' : '禁用'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editStyle(${style.id})">编辑</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteStyle(${style.id})">删除</button>
+                            </td>
+                        </tr>
                     `).join('');
                 });
         }
@@ -1328,55 +1348,52 @@
             fetch('/api/templates')
                 .then(response => response.json())
                 .then(templates => {
-                    const templatesList = document.getElementById('templatesList');
+                    const templatesList = document.getElementById('templatesTableBody');
                     templatesList.innerHTML = templates.map(template => `
-                        <div class="settings-item">
-                            <div class="settings-item-info">
-                                <div class="settings-item-title">
-                                    ${template.name}
-                                    ${template.is_system ? '<span class="badge bg-info">系统</span>' : ''}
-                                </div>
-                                <div class="settings-item-description">${template.description || ''}</div>
-                            </div>
-                            <div class="settings-item-actions">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" 
-                                           ${template.is_enabled ? 'checked' : ''}
-                                           onchange="toggleTemplate(${template.id}, this.checked)">
-                                </div>
-                                ${template.is_system ? '' : `
-                                    <button class="btn btn-sm btn-outline-primary" onclick="editTemplate(${template.id})">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTemplate(${template.id})">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                `}
-                            </div>
-                        </div>
+                        <tr>
+                            <td>${template.name}</td>
+                            <td>${template.description || ''}</td>
+                            <td>
+                                <span class="badge ${template.is_system ? 'bg-info' : 'bg-primary'}">
+                                    ${template.is_system ? '系统' : '自定义'}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge ${template.is_enabled ? 'bg-success' : 'bg-secondary'}">
+                                    ${template.is_enabled ? '启用' : '禁用'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editTemplate(${template.id})">
+                                    ${template.is_system ? '查看' : '编辑'}
+                                </button>
+                                ${!template.is_system ? `
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTemplate(${template.id})">删除</button>
+                                ` : ''}
+                            </td>
+                        </tr>
                     `).join('');
                 });
         }
 
         // 语言管理相关函数
         function showAddLanguageModal() {
-            document.getElementById('languageFormTitle').textContent = '添加语言';
-            document.getElementById('languageId').value = '';
+            document.getElementById('languageModalTitle').textContent = '添加语言';
             document.getElementById('languageForm').reset();
-            languageFormModal.show();
+            document.getElementById('languageId').value = '';
+            new bootstrap.Modal(document.getElementById('languageModal')).show();
         }
 
         function editLanguage(id) {
-            fetch(`/api/languages/${id}`)
-                .then(response => response.json())
-                .then(language => {
-                    document.getElementById('languageFormTitle').textContent = '编辑语言';
-                    document.getElementById('languageId').value = language.id;
-                    document.getElementById('languageName').value = language.name;
-                    document.getElementById('languageDescription').value = language.description || '';
-                    document.getElementById('languageEnabled').checked = language.is_enabled;
-                    languageFormModal.show();
-                });
+            const language = languages.find(l => l.id === id);
+            if (language) {
+                document.getElementById('languageModalTitle').textContent = '编辑语言';
+                document.getElementById('languageId').value = language.id;
+                document.getElementById('languageName').value = language.name;
+                document.getElementById('languageDescription').value = language.description || '';
+                document.getElementById('languageEnabled').checked = language.is_enabled;
+                new bootstrap.Modal(document.getElementById('languageModal')).show();
+            }
         }
 
         function saveLanguage() {
@@ -1400,8 +1417,9 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    languageFormModal.hide();
+                    bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();
                     loadLanguages();
+                    showToast('保存成功');
                 } else {
                     showConfirm('保存失败', result.error || '操作失败，请重试', () => {});
                 }
@@ -1448,23 +1466,22 @@
 
         // 风格管理相关函数
         function showAddStyleModal() {
-            document.getElementById('styleFormTitle').textContent = '添加风格';
-            document.getElementById('styleId').value = '';
+            document.getElementById('styleModalTitle').textContent = '添加风格';
             document.getElementById('styleForm').reset();
-            styleFormModal.show();
+            document.getElementById('styleId').value = '';
+            new bootstrap.Modal(document.getElementById('styleModal')).show();
         }
 
         function editStyle(id) {
-            fetch(`/api/styles/${id}`)
-                .then(response => response.json())
-                .then(style => {
-                    document.getElementById('styleFormTitle').textContent = '编辑风格';
-                    document.getElementById('styleId').value = style.id;
-                    document.getElementById('styleName').value = style.name;
-                    document.getElementById('styleDescription').value = style.description || '';
-                    document.getElementById('styleEnabled').checked = style.is_enabled;
-                    styleFormModal.show();
-                });
+            const style = styles.find(s => s.id === id);
+            if (style) {
+                document.getElementById('styleModalTitle').textContent = '编辑风格';
+                document.getElementById('styleId').value = style.id;
+                document.getElementById('styleName').value = style.name;
+                document.getElementById('styleDescription').value = style.description || '';
+                document.getElementById('styleEnabled').checked = style.is_enabled;
+                new bootstrap.Modal(document.getElementById('styleModal')).show();
+            }
         }
 
         function saveStyle() {
@@ -1481,15 +1498,16 @@
             fetch(url, {
                 method: method,
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    styleFormModal.hide();
+                    bootstrap.Modal.getInstance(document.getElementById('styleModal')).hide();
                     loadStyles();
+                    showToast('保存成功');
                 } else {
                     showConfirm('保存失败', result.error || '操作失败，请重试', () => {});
                 }
@@ -1508,6 +1526,7 @@
                     .then(result => {
                         if (result.success) {
                             loadStyles();
+                            showToast('删除成功');
                         } else {
                             showConfirm('删除失败', result.error || '操作失败，请重试', () => {});
                         }
@@ -1536,24 +1555,31 @@
 
         // 模板管理相关函数
         function showAddTemplateModal() {
-            document.getElementById('templateFormTitle').textContent = '添加模板';
-            document.getElementById('templateId').value = '';
+            document.getElementById('templateModalTitle').textContent = '添加模板';
             document.getElementById('templateForm').reset();
-            templateFormModal.show();
+            document.getElementById('templateId').value = '';
+            new bootstrap.Modal(document.getElementById('templateModal')).show();
         }
 
         function editTemplate(id) {
-            fetch(`/api/templates/${id}`)
-                .then(response => response.json())
-                .then(template => {
-                    document.getElementById('templateFormTitle').textContent = '编辑模板';
-                    document.getElementById('templateId').value = template.id;
-                    document.getElementById('templateName').value = template.name;
-                    document.getElementById('templateDescription').value = template.description || '';
-                    document.getElementById('templateContent').value = template.template;
-                    document.getElementById('templateEnabled').checked = template.is_enabled;
-                    templateFormModal.show();
-                });
+            const template = templates.find(t => t.id === id);
+            if (template) {
+                document.getElementById('templateModalTitle').textContent = template.is_system ? '查看模板' : '编辑模板';
+                document.getElementById('templateId').value = template.id;
+                document.getElementById('templateName').value = template.name;
+                document.getElementById('templateDescription').value = template.description || '';
+                document.getElementById('templateContent').value = template.template;
+                document.getElementById('templateEnabled').checked = template.is_enabled;
+                
+                // 如果是系统模板，禁用编辑
+                const isSystem = template.is_system;
+                document.getElementById('templateName').disabled = isSystem;
+                document.getElementById('templateDescription').disabled = isSystem;
+                document.getElementById('templateContent').disabled = isSystem;
+                document.querySelector('#templateModal .modal-footer .btn-primary').style.display = isSystem ? 'none' : 'block';
+                
+                new bootstrap.Modal(document.getElementById('templateModal')).show();
+            }
         }
 
         function saveTemplate() {
@@ -1571,15 +1597,16 @@
             fetch(url, {
                 method: method,
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    templateFormModal.hide();
+                    bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
                     loadTemplates();
+                    showToast('保存成功');
                 } else {
                     showConfirm('保存失败', result.error || '操作失败，请重试', () => {});
                 }
@@ -1598,6 +1625,7 @@
                     .then(result => {
                         if (result.success) {
                             loadTemplates();
+                            showToast('删除成功');
                         } else {
                             showConfirm('删除失败', result.error || '操作失败，请重试', () => {});
                         }
@@ -1623,6 +1651,54 @@
                 }
             });
         }
+
+        // 显示提示消息
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                document.body.removeChild(toast);
+            });
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化设置管理
+            initSettings();
+            
+            // 监听设置选项卡切换事件
+            document.querySelectorAll('#settingsTabs button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const tabId = e.target.getAttribute('data-bs-target').substring(1);
+                    switch (tabId) {
+                        case 'languages':
+                            loadLanguages();
+                            break;
+                        case 'styles':
+                            loadStyles();
+                            break;
+                        case 'templates':
+                            loadTemplates();
+                            break;
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html> 
