@@ -76,10 +76,51 @@ def get_translation_progress(book_id):
     progress = translation_progress.get(book_id, {'completed': 0, 'total': 0})
     return jsonify(progress)
 
+@book_api.route('/translation_settings/<int:book_id>', methods=['GET'])
+def get_translation_settings(book_id):
+    """获取书籍的翻译设置"""
+    try:
+        book = Book.query.get_or_404(book_id)
+        return jsonify({
+            'has_settings': bool(book.target_language and book.translation_style and book.prompt_template),
+            'settings': {
+                'target_language': book.target_language,
+                'translation_style': book.translation_style,
+                'prompt_template': book.prompt_template,
+                'custom_prompt': book.custom_prompt
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@book_api.route('/save_translation_settings/<int:book_id>', methods=['POST'])
+def save_translation_settings(book_id):
+    """保存书籍的翻译设置"""
+    try:
+        book = Book.query.get_or_404(book_id)
+        settings = request.json
+        
+        book.target_language = settings.get('target_language', '中文')
+        book.translation_style = settings.get('translation_style', '准确、流畅')
+        book.prompt_template = settings.get('prompt_template', 'standard')
+        book.custom_prompt = settings.get('custom_prompt', '')
+        
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @book_api.route('/translate_remaining/<int:book_id>', methods=['POST'])
 def translate_remaining(book_id):
     """翻译书籍中所有未翻译的碎片"""
     try:
+        book = Book.query.get_or_404(book_id)
+        
+        # 检查是否有翻译设置
+        if not (book.target_language and book.translation_style and book.prompt_template):
+            return jsonify({'error': '请先设置翻译参数'}), 400
+            
         # 修改查询条件，同时匹配 None 和空字符串
         fragments = Fragment.query.filter(
             Fragment.book_id == book_id,
@@ -89,13 +130,15 @@ def translate_remaining(book_id):
         total = len(fragments)
         translation_progress[book_id] = {'completed': 0, 'total': total}
         
-        # 获取书籍对象
-        book = Book.query.get_or_404(book_id)
-        
         for idx, fragment in enumerate(fragments, 1):
             try:
-                # 翻译单个片段
-                fragment.translated_text = translation_service.translate(fragment.original_text)
+                # 使用书籍的翻译设置进行翻译
+                fragment.translated_text = translation_service.translate(
+                    fragment.original_text,
+                    target_lang=book.target_language,
+                    style=book.translation_style,
+                    custom_prompt=book.custom_prompt if book.custom_prompt else None
+                )
                 db.session.add(fragment)
                 # 立即提交每个翻译结果
                 db.session.commit()

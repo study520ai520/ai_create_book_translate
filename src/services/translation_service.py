@@ -16,7 +16,10 @@ class TranslationService:
     # 默认翻译配置
     DEFAULT_TARGET_LANG = '中文'
     DEFAULT_TRANSLATION_STYLE = '准确、流畅'
-    DEFAULT_TRANSLATION_PROMPT = '''
+    
+    # 翻译模板
+    TEMPLATES = {
+        'standard': '''
 你是一个专业的翻译专家。请将以下文本翻译成{target_lang}。
 
 翻译要求：
@@ -32,7 +35,76 @@ class TranslationService:
 翻译风格：{style}
 
 请直接输出译文，不要包含任何解释或说明。
+''',
+        'literary': '''
+你是一位资深的文学翻译家。请将以下文本翻译成{target_lang}。
+
+翻译要求：
+1. 注重文学性和艺术性表达
+2. 保持原文的意境和情感
+3. 使用优美、富有诗意的语言
+4. 适当运用修辞手法
+5. 确保译文优雅流畅
+
+原文内容：
+{text}
+
+翻译风格：{style}
+
+请直接输出译文，不要包含任何解释或说明。
+''',
+        'technical': '''
+你是一位专业的技术文档翻译专家。请将以下文本翻译成{target_lang}。
+
+翻译要求：
+1. 严格准确的术语翻译
+2. 保持专业性和严谨性
+3. 使用规范的技术文档语言
+4. 确保逻辑清晰
+5. 保持格式统一
+
+原文内容：
+{text}
+
+翻译风格：{style}
+
+请直接输出译文，不要包含任何解释或说明。
+''',
+        'casual': '''
+你是一位口语翻译专家。请将以下文本翻译成{target_lang}。
+
+翻译要求：
+1. 使用自然的口语表达
+2. 保持对话的轻松感
+3. 适当使用俚语和习语
+4. 注重表达的生动性
+5. 符合日常交际习惯
+
+原文内容：
+{text}
+
+翻译风格：{style}
+
+请直接输出译文，不要包含任何解释或说明。
+''',
+        'academic': '''
+你是一位学术论文翻译专家。请将以下文本翻译成{target_lang}。
+
+翻译要求：
+1. 严格遵守学术写作规范
+2. 准确传达学术概念
+3. 使用规范的学术用语
+4. 保持客观严谨的语气
+5. 注重专业术语的统一性
+
+原文内容：
+{text}
+
+翻译风格：{style}
+
+请直接输出译文，不要包含任何解释或说明。
 '''
+    }
     
     def __init__(self):
         """初始化OpenAI客户端"""
@@ -68,12 +140,14 @@ class TranslationService:
                 )
                 logging.info("使用自定义提示词进行翻译")
             else:
-                prompt = self.DEFAULT_TRANSLATION_PROMPT.format(
+                # 根据模板类型选择提示词
+                template = self.TEMPLATES.get(style, self.TEMPLATES['standard'])
+                prompt = template.format(
                     text=text,
                     target_lang=target_lang or self.DEFAULT_TARGET_LANG,
                     style=style or self.DEFAULT_TRANSLATION_STYLE
                 )
-                logging.info("使用默认提示词进行翻译")
+                logging.info(f"使用{style or 'standard'}模板进行翻译")
 
             # 调用OpenAI API
             logging.info(f"调用OpenAI API，模型：{self.model}")

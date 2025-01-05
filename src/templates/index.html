@@ -446,18 +446,92 @@
         <div id="logContent" class="log-content"></div>
     </div>
 
+    <!-- 添加翻译设置模态框 -->
+    <div class="modal fade" id="translationSettingsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-gear"></i> 翻译设置
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="translationSettingsForm">
+                        <div class="mb-3">
+                            <label class="form-label">目标语言</label>
+                            <select class="form-select" id="targetLanguage" required>
+                                <option value="中文">中文</option>
+                                <option value="英文">英文</option>
+                                <option value="日文">日文</option>
+                                <option value="韩文">韩文</option>
+                                <option value="法文">法文</option>
+                                <option value="德文">德文</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">翻译风格</label>
+                            <select class="form-select" id="translationStyle" required>
+                                <option value="准确、流畅">准确、流畅</option>
+                                <option value="文学性、优美">文学性、优美</option>
+                                <option value="口语化、通俗">口语化、通俗</option>
+                                <option value="专业、严谨">专业、严谨</option>
+                                <option value="简明、直接">简明、直接</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">提示词模板</label>
+                            <select class="form-select" id="promptTemplate" required>
+                                <option value="standard">标准模板</option>
+                                <option value="literary">文学翻译模板</option>
+                                <option value="technical">技术文档模板</option>
+                                <option value="casual">日常对话模板</option>
+                                <option value="academic">学术论文模板</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">自定义提示词</label>
+                            <textarea class="form-control" id="customPrompt" rows="3" placeholder="可选：输入自定义的翻译提示词"></textarea>
+                            <small class="text-muted">如果不填写，将使用选择的模板</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveTranslationSettings">保存并开始翻译</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // 全局变量
         let fragmentModal;
         let confirmModal;
+        let translationSettingsModal;
         let currentBookId;
+        let currentTranslationSettings = {};  // 存储当前的翻译设置
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             fragmentModal = new bootstrap.Modal(document.getElementById('fragmentModal'));
             confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            translationSettingsModal = new bootstrap.Modal(document.getElementById('translationSettingsModal'));
             loadBooks();
+            
+            // 绑定翻译设置保存按钮事件
+            document.getElementById('saveTranslationSettings').addEventListener('click', function() {
+                const settings = {
+                    target_language: document.getElementById('targetLanguage').value,
+                    translation_style: document.getElementById('translationStyle').value,
+                    prompt_template: document.getElementById('promptTemplate').value,
+                    custom_prompt: document.getElementById('customPrompt').value.trim()
+                };
+                
+                // 保存设置并开始翻译
+                saveTranslationSettings(currentBookId, settings);
+            });
             
             // 处理文件拖放
             const uploadZone = document.querySelector('.upload-zone');
@@ -651,47 +725,23 @@
 
         // 修改翻译剩余碎片的函数
         function translateRemaining(bookId) {
-            showConfirm(
-                '批量翻译确认',
-                '确定要翻译所有未翻译的碎片吗？这可能需要一些时间。',
-                function() {
-                    showTranslationLog();
-                    showLog('开始翻译...');
-
-                    // 开始轮询翻译进度
-                    const progressInterval = setInterval(() => {
-                        fetch(`/translation_progress/${bookId}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.total > 0) {
-                                    const progress = Math.round((data.completed / data.total) * 100);
-                                    showLog(`翻译进度: ${progress}% (${data.completed}/${data.total})`);
-                                }
-                            });
-                    }, 1000);
-
-                    fetch(`/translate_remaining/${bookId}`, {
-                        method: 'POST'
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        clearInterval(progressInterval);
-                        if (result.success) {
-                            showLog('翻译完成！', 'progress');
-                            loadBooks();
-                            if (currentBookId === bookId) {
-                                loadFragments(bookId);
-                            }
-                        } else {
-                            showLog(`翻译出错: ${result.error}`, 'error');
-                        }
-                    })
-                    .catch(error => {
-                        clearInterval(progressInterval);
-                        showLog(`发生错误: ${error}`, 'error');
-                    });
-                }
-            );
+            // 先检查是否已有翻译设置
+            fetch(`/translation_settings/${bookId}`)
+                .then(response => response.json())
+                .then(settings => {
+                    if (settings.has_settings) {
+                        // 如果已有设置，直接确认开始翻译
+                        showConfirm(
+                            '批量翻译确认',
+                            '确定要翻译所有未翻译的碎片吗？这可能需要一些时间。',
+                            () => startTranslation(bookId)
+                        );
+                    } else {
+                        // 如果没有设置，显示设置对话框
+                        currentBookId = bookId;
+                        translationSettingsModal.show();
+                    }
+                });
         }
 
         // 修改重新翻译函数
@@ -787,6 +837,69 @@
             };
             
             confirmModal.show();
+        }
+
+        // 保存翻译设置并开始翻译
+        function saveTranslationSettings(bookId, settings) {
+            fetch(`/save_translation_settings/${bookId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    translationSettingsModal.hide();
+                    // 保存设置后开始翻译
+                    startTranslation(bookId);
+                } else {
+                    showLog(`设置保存失败: ${result.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showLog(`设置保存出错: ${error}`, 'error');
+            });
+        }
+
+        // 开始翻译
+        function startTranslation(bookId) {
+            showTranslationLog();
+            showLog('开始翻译...');
+
+            // 开始轮询翻译进度
+            const progressInterval = setInterval(() => {
+                fetch(`/translation_progress/${bookId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.total > 0) {
+                            const progress = Math.round((data.completed / data.total) * 100);
+                            showLog(`翻译进度: ${progress}% (${data.completed}/${data.total})`);
+                        }
+                    });
+            }, 1000);
+
+            fetch(`/translate_remaining/${bookId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(result => {
+                clearInterval(progressInterval);
+                if (result.success) {
+                    showLog('翻译完成！', 'progress');
+                    loadBooks();
+                    if (currentBookId === bookId) {
+                        loadFragments(bookId);
+                    }
+                } else {
+                    showLog(`翻译出错: ${result.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                showLog(`发生错误: ${error}`, 'error');
+            });
         }
     </script>
 </body>
