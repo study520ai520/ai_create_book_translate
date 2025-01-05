@@ -5,10 +5,7 @@ class TranslationQueueManager {
         this.processing = false; // 是否正在处理任务
         this.currentTask = null; // 当前正在处理的任务
         
-        // 显示队列和日志窗口
-        document.getElementById('translationQueue').classList.add('active');
-        document.getElementById('translationLog').classList.add('active');
-        
+        // 不在构造函数中显示窗口，而是在添加任务时显示
         this.initEventListeners();
     }
 
@@ -37,14 +34,22 @@ class TranslationQueueManager {
             progress: 0
         };
 
+        console.log('添加新任务到队列:', task);
+        this.addLogMessage(`添加任务: ${bookName} - 片段 #${fragmentId}`);
+
         // 添加到队列
         this.queue.set(taskId, task);
+        
+        // 显示队列和日志窗口
+        document.getElementById('translationQueue').classList.add('active');
+        document.getElementById('translationLog').classList.add('active');
         
         // 更新队列显示
         this.updateQueueDisplay();
         
         // 如果当前没有正在处理的任务，开始处理
         if (!this.processing) {
+            console.log('开始处理队列中的任务');
             this.processNextTask();
         }
     }
@@ -67,7 +72,7 @@ class TranslationQueueManager {
             `;
         });
 
-        queueContent.innerHTML = html;
+        queueContent.innerHTML = html || '<div class="text-muted">队列为空</div>';
     }
 
     // 获取状态文本
@@ -83,11 +88,17 @@ class TranslationQueueManager {
 
     // 处理下一个任务
     async processNextTask() {
-        if (this.processing || this.queue.size === 0) return;
+        if (this.processing || this.queue.size === 0) {
+            console.log('当前无法处理任务:', { processing: this.processing, queueSize: this.queue.size });
+            return;
+        }
 
         this.processing = true;
         const [taskId, task] = Array.from(this.queue.entries())[0];
         this.currentTask = task;
+
+        console.log('开始处理任务:', task);
+        this.addLogMessage(`开始翻译: ${task.bookName} - 片段 #${task.fragmentId}`);
 
         try {
             // 更新任务状态
@@ -100,9 +111,14 @@ class TranslationQueueManager {
                 method: 'POST'
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                throw new Error('翻译请求失败');
+                throw new Error(result.error || '翻译请求失败');
             }
+
+            console.log('翻译成功:', result);
+            this.addLogMessage(`翻译成功: ${task.bookName} - 片段 #${task.fragmentId}`);
 
             // 更新任务状态
             task.status = 'completed';
@@ -114,11 +130,10 @@ class TranslationQueueManager {
 
         } catch (error) {
             console.error('翻译失败:', error);
+            this.addLogMessage(`翻译失败: ${task.bookName} - 片段 #${task.fragmentId} - ${error.message}`, 'error');
+            
             task.status = 'error';
             this.updateQueueDisplay();
-            
-            // 记录错误日志
-            this.addLogMessage(`翻译失败: ${error.message}`, 'error');
             
             // 从队列中移除失败的任务
             this.queue.delete(taskId);
@@ -129,7 +144,11 @@ class TranslationQueueManager {
 
         // 继续处理下一个任务
         if (this.queue.size > 0) {
-            this.processNextTask();
+            console.log('继续处理下一个任务');
+            setTimeout(() => this.processNextTask(), 1000); // 添加1秒延迟，避免请求过于频繁
+        } else {
+            console.log('所有任务处理完成');
+            this.addLogMessage('所有翻译任务已完成');
         }
     }
 
@@ -153,6 +172,7 @@ class TranslationQueueManager {
     clearQueue() {
         this.queue.clear();
         this.updateQueueDisplay();
+        this.addLogMessage('已清空翻译队列');
     }
 }
 
