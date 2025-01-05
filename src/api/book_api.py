@@ -400,7 +400,21 @@ def translate_fragment(book_id, fragment_id):
         fragment.translated_text = translated_text
         db.session.commit()
         
-        return jsonify({'message': '翻译成功'})
+        # 更新书籍的翻译进度
+        total_fragments = Fragment.query.filter_by(book_id=book_id).count()
+        translated_fragments = Fragment.query.filter(
+            Fragment.book_id == book_id,
+            Fragment.translated_text != None,
+            Fragment.translated_text != ""
+        ).count()
+        book.progress = round((translated_fragments / total_fragments) * 100)
+        db.session.add(book)
+        db.session.commit()
+        
+        return jsonify({
+            'message': '翻译成功',
+            'progress': book.progress
+        })
         
     except Exception as e:
         db.session.rollback()

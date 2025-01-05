@@ -33,7 +33,7 @@ class BookManager {
     renderBooks(books) {
         const bookList = document.getElementById('bookList');
         bookList.innerHTML = books.map(book => `
-            <div class="book-card">
+            <div class="book-card" data-book-id="${book.id}">
                 <div class="book-info">
                     <div class="book-title">
                         <i class="bi bi-book"></i>

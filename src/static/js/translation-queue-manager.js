@@ -129,7 +129,22 @@ class TranslationQueueManager {
             this.queue.delete(taskId);
 
             // 刷新书籍列表以更新进度
-            await bookManager.loadBooks();
+            if (result.progress !== undefined) {
+                // 直接更新书籍卡片的进度条
+                const progressBar = document.querySelector(`#bookList .book-card[data-book-id="${task.bookId}"] .progress-bar`);
+                if (progressBar) {
+                    progressBar.style.width = `${result.progress}%`;
+                    progressBar.setAttribute('aria-valuenow', result.progress);
+                }
+                // 更新进度文本
+                const progressText = document.querySelector(`#bookList .book-card[data-book-id="${task.bookId}"] .text-muted`);
+                if (progressText) {
+                    progressText.textContent = `翻译进度: ${result.progress}%`;
+                }
+            } else {
+                // 如果后端没有返回进度，则刷新整个列表
+                await bookManager.loadBooks();
+            }
 
         } catch (error) {
             console.error('翻译失败:', error);
