@@ -6,12 +6,22 @@ from config.config import config
 import os
 
 def create_app(config_name='default'):
+    # 获取基础路径
+    base_path = os.environ.get('WORKSPACE_ROOT', os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+    
+    # 创建应用实例
     app = Flask(__name__, 
-                template_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src/templates'),
-                static_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src/static'))
+                template_folder=os.path.join(base_path, 'src/templates'),
+                static_folder=os.path.join(base_path, 'src/static'))
     
     # 加载配置
     app.config.from_object(config[config_name])
+    
+    # 设置上传目录
+    app.config['UPLOAD_FOLDER'] = os.path.join(base_path, 'uploads')
+    
+    # 设置数据库文件路径
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(base_path, "database", "translate_book.db")}'
     
     # 初始化数据库
     db.init_app(app)
