@@ -87,6 +87,16 @@
             margin-right: 2rem;
         }
 
+        .translation-settings {
+            margin-top: 0.5rem;
+        }
+
+        .translation-settings .badge {
+            margin-right: 0.5rem;
+            padding: 0.4em 0.6em;
+            font-weight: normal;
+        }
+
         .book-title {
             font-size: 1.2rem;
             font-weight: 600;
@@ -606,6 +616,16 @@
                                     <i class="bi bi-book"></i>
                                     ${book.name}
                                 </h5>
+                                <div class="translation-settings">
+                                    <small class="text-muted">
+                                        <i class="bi bi-gear"></i> 翻译设置：
+                                        ${book.has_translation_settings ? `
+                                            <span class="badge bg-info">${book.target_language}</span>
+                                            <span class="badge bg-success">${book.translation_style}</span>
+                                            <span class="badge bg-primary">${getTemplateLabel(book.prompt_template)}</span>
+                                        ` : '<span class="badge bg-warning">未设置</span>'}
+                                    </small>
+                                </div>
                             </div>
                             <div class="progress-section">
                                 <div class="progress">
@@ -630,8 +650,8 @@
                                     <i class="bi bi-translate me-1"></i>一键翻译
                                 </button>
                                 <button class="btn btn-warning" 
-                                        onclick="retranslateAll(${book.id})">
-                                    <i class="bi bi-arrow-repeat me-1"></i>重新翻译
+                                        onclick="showTranslationSettings(${book.id})">
+                                    <i class="bi bi-gear me-1"></i>翻译设置
                                 </button>
                                 <button class="btn btn-info" 
                                         onclick="exportBook(${book.id})">
@@ -644,6 +664,36 @@
                             </div>
                         </div>
                     `).join('');
+                });
+        }
+
+        // 获取模板标签
+        function getTemplateLabel(template) {
+            const labels = {
+                'standard': '标准模板',
+                'literary': '文学翻译',
+                'technical': '技术文档',
+                'casual': '日常对话',
+                'academic': '学术论文'
+            };
+            return labels[template] || template;
+        }
+
+        // 显示翻译设置
+        function showTranslationSettings(bookId) {
+            currentBookId = bookId;
+            
+            // 获取当前设置
+            fetch(`/translation_settings/${bookId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.settings) {
+                        document.getElementById('targetLanguage').value = data.settings.target_language;
+                        document.getElementById('translationStyle').value = data.settings.translation_style;
+                        document.getElementById('promptTemplate').value = data.settings.prompt_template;
+                        document.getElementById('customPrompt').value = data.settings.custom_prompt || '';
+                    }
+                    translationSettingsModal.show();
                 });
         }
 
