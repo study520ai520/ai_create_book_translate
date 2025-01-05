@@ -6,9 +6,7 @@ from src.api import main_api, book_api, translation_api
 
 def create_app(config_name='default'):
     """创建Flask应用"""
-    app = Flask(__name__, 
-                template_folder=os.path.join('src', 'templates'),
-                static_folder=os.path.join('src', 'static'))
+    app = Flask(__name__)
     
     # 加载配置
     app.config.from_object(config[config_name])
