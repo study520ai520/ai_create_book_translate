@@ -107,7 +107,7 @@ class TranslationQueueManager {
             this.updateQueueDisplay();
 
             // 调用翻译API
-            const response = await fetch(`/api/translate_fragment/${task.bookId}/${task.fragmentId}`, {
+            const response = await fetch(`/api/book/${task.bookId}/translate_fragment/${task.fragmentId}`, {
                 method: 'POST'
             });
 
@@ -127,6 +127,9 @@ class TranslationQueueManager {
 
             // 从队列中移除已完成的任务
             this.queue.delete(taskId);
+
+            // 刷新书籍列表以更新进度
+            await bookManager.loadBooks();
 
         } catch (error) {
             console.error('翻译失败:', error);

@@ -208,13 +208,13 @@ class BookManager {
             console.log('开始翻译书籍:', bookId);
             
             // 获取书籍信息
-            const response = await fetch(`/api/books/${bookId}`);
+            const response = await fetch(`/api/book/${bookId}`);
             if (!response.ok) throw new Error('获取书籍信息失败');
             const book = await response.json();
             console.log('获取到书籍信息:', book);
 
             // 获取未翻译的片段
-            const fragmentsResponse = await fetch(`/api/untranslated_fragments/${bookId}`);
+            const fragmentsResponse = await fetch(`/api/book/${bookId}/fragments`);
             if (!fragmentsResponse.ok) throw new Error('获取未翻译片段失败');
             const fragments = await fragmentsResponse.json();
             console.log('获取到未翻译片段:', fragments);
@@ -228,9 +228,9 @@ class BookManager {
             fragments.forEach(fragment => {
                 translationQueueManager.addTask(
                     bookId, 
-                    book.name, // 使用 name 而不是 title
-                    fragment.id,
-                    fragment.original_text || fragment.content // 兼容两种字段名
+                    book.name,
+                    fragment.fragment_number,
+                    fragment.original_text
                 );
             });
 
@@ -246,13 +246,13 @@ class BookManager {
             console.log('继续翻译书籍:', bookId);
             
             // 获取书籍信息
-            const response = await fetch(`/api/books/${bookId}`);
+            const response = await fetch(`/api/book/${bookId}`);
             if (!response.ok) throw new Error('获取书籍信息失败');
             const book = await response.json();
             console.log('获取到书籍信息:', book);
 
             // 获取未翻译的片段
-            const fragmentsResponse = await fetch(`/api/untranslated_fragments/${bookId}`);
+            const fragmentsResponse = await fetch(`/api/book/${bookId}/fragments`);
             if (!fragmentsResponse.ok) throw new Error('获取未翻译片段失败');
             const fragments = await fragmentsResponse.json();
             console.log('获取到未翻译片段:', fragments);
@@ -266,9 +266,9 @@ class BookManager {
             fragments.forEach(fragment => {
                 translationQueueManager.addTask(
                     bookId, 
-                    book.name, // 使用 name 而不是 title
-                    fragment.id,
-                    fragment.original_text || fragment.content // 兼容两种字段名
+                    book.name,
+                    fragment.fragment_number,
+                    fragment.original_text
                 );
             });
 
