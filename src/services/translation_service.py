@@ -1,5 +1,14 @@
 from openai import OpenAI
 from config.config import Config
+import logging
+import time
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 class TranslationService:
     """翻译服务"""
@@ -34,6 +43,7 @@ class TranslationService:
             timeout=Config.TIMEOUT
         )
         self.model = Config.OPENAI_MODEL
+        logging.info(f"翻译服务初始化完成，使用模型：{self.model}")
 
     def translate(self, text, target_lang=None, style=None, custom_prompt=None):
         """
@@ -44,6 +54,10 @@ class TranslationService:
         :param custom_prompt: 自定义提示词
         :return: 翻译后的文本
         """
+        start_time = time.time()
+        text_preview = text[:100] + '...' if len(text) > 100 else text
+        logging.info(f"开始翻译文本: {text_preview}")
+        
         try:
             # 使用自定义提示词或默认提示词
             if custom_prompt:
@@ -52,14 +66,17 @@ class TranslationService:
                     target_lang=target_lang or self.DEFAULT_TARGET_LANG,
                     style=style or self.DEFAULT_TRANSLATION_STYLE
                 )
+                logging.info("使用自定义提示词进行翻译")
             else:
                 prompt = self.DEFAULT_TRANSLATION_PROMPT.format(
                     text=text,
                     target_lang=target_lang or self.DEFAULT_TARGET_LANG,
                     style=style or self.DEFAULT_TRANSLATION_STYLE
                 )
+                logging.info("使用默认提示词进行翻译")
 
             # 调用OpenAI API
+            logging.info(f"调用OpenAI API，模型：{self.model}")
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
@@ -75,8 +92,62 @@ class TranslationService:
 
             # 提取翻译结果
             translated_text = response.choices[0].message.content.strip()
+            translation_preview = translated_text[:100] + '...' if len(translated_text) > 100 else translated_text
+            
+            # 计算耗时
+            end_time = time.time()
+            duration = round(end_time - start_time, 2)
+            
+            logging.info(f"翻译完成，耗时：{duration}秒")
+            logging.info(f"翻译结果: {translation_preview}")
+            
             return translated_text
 
         except Exception as e:
-            print(f"翻译出错: {str(e)}")
-            return text  # 出错时返回原文 
+            logging.error(f"翻译出错: {str(e)}")
+            logging.error(f"原文: {text_preview}")
+            logging.error(f"目标语言: {target_lang or self.DEFAULT_TARGET_LANG}")
+            logging.error(f"翻译风格: {style or self.DEFAULT_TRANSLATION_STYLE}")
+            return text  # 出错时返回原文
+
+    def translate_batch(self, texts, target_lang=None, style=None, custom_prompt=None):
+        """
+        批量翻译文本
+        :param texts: 要翻译的文本列表
+        :param target_lang: 目标语言
+        :param style: 翻译风格
+        :param custom_prompt: 自定义提示词
+        :return: 翻译后的文本列表
+        """
+        total_texts = len(texts)
+        logging.info(f"开始批量翻译，共 {total_texts} 个文本")
+        start_time = time.time()
+        
+        translated_texts = []
+        success_count = 0
+        error_count = 0
+        
+        for i, text in enumerate(texts, 1):
+            try:
+                logging.info(f"翻译进度: {i}/{total_texts} ({round(i/total_texts*100, 1)}%)")
+                translated_text = self.translate(text, target_lang, style, custom_prompt)
+                translated_texts.append(translated_text)
+                success_count += 1
+                
+            except Exception as e:
+                logging.error(f"第 {i} 个文本翻译失败: {str(e)}")
+                translated_texts.append(text)  # 出错时保留原文
+                error_count += 1
+        
+        # 计算总耗时和统计信息
+        end_time = time.time()
+        total_duration = round(end_time - start_time, 2)
+        avg_duration = round(total_duration / total_texts, 2)
+        
+        logging.info(f"批量翻译完成:")
+        logging.info(f"- 总耗时: {total_duration}秒")
+        logging.info(f"- 平均每个文本耗时: {avg_duration}秒")
+        logging.info(f"- 成功: {success_count}")
+        logging.info(f"- 失败: {error_count}")
+        
+        return translated_texts 
