@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify, send_file, current_app
 from src.services import DocumentService, TranslationService
 from src.models import Book, Fragment
 from src.database import db
@@ -12,6 +12,9 @@ from config.config import Config
 book_api = Blueprint('book_api', __name__)
 document_service = DocumentService()
 translation_service = TranslationService()
+
+# 添加翻译进度存储
+translation_progress = {}
 
 @book_api.route('/books', methods=['GET'])
 def get_books():
@@ -67,6 +70,12 @@ def get_fragments(book_id):
     fragments = Fragment.query.filter_by(book_id=book_id).all()
     return jsonify([fragment.to_dict() for fragment in fragments])
 
+@book_api.route('/translation_progress/<int:book_id>', methods=['GET'])
+def get_translation_progress(book_id):
+    """获取翻译进度"""
+    progress = translation_progress.get(book_id, {'completed': 0, 'total': 0})
+    return jsonify(progress)
+
 @book_api.route('/translate_remaining/<int:book_id>', methods=['POST'])
 def translate_remaining(book_id):
     """翻译书籍中所有未翻译的碎片"""
@@ -77,13 +86,23 @@ def translate_remaining(book_id):
             (Fragment.translated_text == None) | (Fragment.translated_text == "")  # noqa
         ).all()
         
-        for fragment in fragments:
+        total = len(fragments)
+        translation_progress[book_id] = {'completed': 0, 'total': total}
+        
+        for idx, fragment in enumerate(fragments, 1):
             fragment.translated_text = translation_service.translate(fragment.original_text)
             db.session.add(fragment)
+            # 更新进度
+            translation_progress[book_id]['completed'] = idx
+            
         db.session.commit()
+        # 清理进度信息
+        translation_progress.pop(book_id, None)
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
+        # 清理进度信息
+        translation_progress.pop(book_id, None)
         return jsonify({'error': str(e)}), 500
 
 @book_api.route('/retranslate/<int:book_id>', methods=['POST'])
@@ -105,6 +124,7 @@ def retranslate_book(book_id):
         
         # 更新总碎片数
         book.total_fragments = len(fragments)
+        translation_progress[book_id] = {'completed': 0, 'total': len(fragments)}
         
         # 创建新碎片并翻译
         for idx, content in enumerate(fragments):
@@ -115,11 +135,17 @@ def retranslate_book(book_id):
                 translated_text=translation_service.translate(content)
             )
             db.session.add(fragment)
+            # 更新进度
+            translation_progress[book_id]['completed'] = idx + 1
         
         db.session.commit()
+        # 清理进度信息
+        translation_progress.pop(book_id, None)
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
+        # 清理进度信息
+        translation_progress.pop(book_id, None)
         return jsonify({'error': str(e)}), 500
 
 @book_api.route('/export/<int:book_id>', methods=['GET'])

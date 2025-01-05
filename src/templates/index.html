@@ -307,6 +307,53 @@
                 width: 100%;
             }
         }
+
+        .translation-log {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            max-height: 300px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: monospace;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .translation-log.active {
+            display: block;
+        }
+
+        .translation-log .log-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .translation-log .log-content {
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .translation-log .log-item {
+            margin-bottom: 5px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .translation-log .progress-info {
+            color: #4CAF50;
+        }
+
+        .translation-log .error-info {
+            color: #f44336;
+        }
     </style>
 </head>
 <body>
@@ -386,6 +433,17 @@
         <div class="spinner-border loading-spinner" role="status">
             <span class="visually-hidden">加载中...</span>
         </div>
+    </div>
+
+    <!-- 添加翻译日志区域 -->
+    <div id="translationLog" class="translation-log">
+        <div class="log-title">
+            翻译进度
+            <button class="btn btn-sm btn-outline-light" onclick="document.getElementById('translationLog').classList.remove('active')">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div id="logContent" class="log-content"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -568,24 +626,63 @@
             .finally(() => toggleLoading(false));
         }
 
-        // 翻译剩余未翻译的碎片
+        // 添加日志显示函数
+        function showLog(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${type}-info`;
+            logItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContent.appendChild(logItem);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        // 显示翻译日志区域
+        function showTranslationLog() {
+            document.getElementById('translationLog').classList.add('active');
+            document.getElementById('logContent').innerHTML = '';
+        }
+
+        // 修改翻译剩余碎片的函数
         function translateRemaining(bookId) {
             showConfirm(
                 '批量翻译确认',
                 '确定要翻译所有未翻译的碎片吗？这可能需要一些时间。',
                 function() {
+                    showTranslationLog();
+                    showLog('开始翻译...');
                     toggleLoading(true);
+
+                    // 开始轮询翻译进度
+                    const progressInterval = setInterval(() => {
+                        fetch(`/translation_progress/${bookId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.total > 0) {
+                                    const progress = Math.round((data.completed / data.total) * 100);
+                                    showLog(`翻译进度: ${progress}% (${data.completed}/${data.total})`);
+                                }
+                            });
+                    }, 1000);
+
                     fetch(`/translate_remaining/${bookId}`, {
                         method: 'POST'
                     })
                     .then(response => response.json())
                     .then(result => {
+                        clearInterval(progressInterval);
                         if (result.success) {
+                            showLog('翻译完成！', 'progress');
                             loadBooks();
                             if (currentBookId === bookId) {
                                 loadFragments(bookId);
                             }
+                        } else {
+                            showLog(`翻译出错: ${result.error}`, 'error');
                         }
+                    })
+                    .catch(error => {
+                        clearInterval(progressInterval);
+                        showLog(`发生错误: ${error}`, 'error');
                     })
                     .finally(() => toggleLoading(false));
                 }
