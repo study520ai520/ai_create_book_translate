@@ -377,7 +377,10 @@ def translate_fragment(book_id, fragment_id):
         
         # 如果已经翻译过，直接返回成功
         if fragment.translated_text is not None and fragment.translated_text != "":
-            return jsonify({'message': '片段已翻译'}), 200
+            return jsonify({
+                'message': '片段已翻译',
+                'progress': book.calculate_progress()
+            }), 200
         
         # 获取翻译设置
         settings_response = get_translation_settings(book_id)
@@ -400,20 +403,12 @@ def translate_fragment(book_id, fragment_id):
         fragment.translated_text = translated_text
         db.session.commit()
         
-        # 更新书籍的翻译进度
-        total_fragments = Fragment.query.filter_by(book_id=book_id).count()
-        translated_fragments = Fragment.query.filter(
-            Fragment.book_id == book_id,
-            Fragment.translated_text != None,
-            Fragment.translated_text != ""
-        ).count()
-        book.progress = round((translated_fragments / total_fragments) * 100)
-        db.session.add(book)
-        db.session.commit()
+        # 计算最新进度
+        current_progress = book.calculate_progress()
         
         return jsonify({
             'message': '翻译成功',
-            'progress': book.progress
+            'progress': current_progress
         })
         
     except Exception as e:

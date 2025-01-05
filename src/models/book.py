@@ -16,12 +16,27 @@ class Book(db.Model):
     # 关联的碎片
     fragments = db.relationship('Fragment', backref='book', lazy=True, cascade='all, delete-orphan')
     
+    def calculate_progress(self):
+        """实时计算翻译进度"""
+        if not self.total_fragments:
+            return 0
+        translated_count = sum(1 for f in self.fragments if f.translated_text and f.translated_text.strip())
+        return round((translated_count / self.total_fragments) * 100)
+    
     def to_dict(self):
+        # 使用实时计算的进度
+        current_progress = self.calculate_progress()
+        # 更新存储的进度
+        if current_progress != self.progress:
+            self.progress = current_progress
+            db.session.add(self)
+            db.session.commit()
+            
         return {
             'id': self.id,
             'name': self.name,
             'total_fragments': self.total_fragments,
-            'progress': self.progress,
+            'progress': current_progress,
             'has_translation_settings': bool(self.target_language and self.translation_style and self.prompt_template),
             'target_language': self.target_language,
             'translation_style': self.translation_style,
