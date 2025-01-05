@@ -302,6 +302,14 @@ class GlobalSettingsManager {
         document.getElementById('templateModalTitle').textContent = '添加模板';
         document.getElementById('templateForm').reset();
         document.getElementById('templateId').value = '';
+        
+        // 确保所有字段可编辑
+        document.getElementById('templateName').disabled = false;
+        document.getElementById('templateDescription').disabled = false;
+        document.getElementById('templateContent').disabled = false;
+        document.getElementById('templateEnabled').disabled = false;
+        document.getElementById('saveTemplateBtn').style.display = 'block';
+        
         new bootstrap.Modal(document.getElementById('templateModal')).show();
     }
 
