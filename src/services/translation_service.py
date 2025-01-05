@@ -1,4 +1,4 @@
-import openai
+from openai import OpenAI
 from config.config import Config
 
 class TranslationService:
@@ -26,11 +26,13 @@ class TranslationService:
 '''
     
     def __init__(self):
-        """初始化OpenAI配置"""
-        openai.api_key = Config.OPENAI_API_KEY
-        openai.api_base = Config.OPENAI_API_BASE
-        openai.api_type = Config.OPENAI_API_TYPE
-        openai.api_version = Config.OPENAI_API_VERSION
+        """初始化OpenAI客户端"""
+        self.client = OpenAI(
+            api_key=Config.OPENAI_API_KEY,
+            base_url=Config.OPENAI_API_BASE or None,
+            organization=Config.OPENAI_ORGANIZATION or None,
+            timeout=Config.TIMEOUT
+        )
         self.model = Config.OPENAI_MODEL
 
     def translate(self, text, target_lang=None, style=None, custom_prompt=None):
@@ -58,14 +60,14 @@ class TranslationService:
                 )
 
             # 调用OpenAI API
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": "你是一个专业的翻译助手，精通多国语言，擅长保持原文风格的翻译。"},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7,
-                max_tokens=1500,
+                temperature=Config.TEMPERATURE,
+                max_tokens=Config.MAX_TOKENS_PER_REQUEST,
                 top_p=1.0,
                 frequency_penalty=0.0,
                 presence_penalty=0.0
