@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from src.database import db
-from src.models.settings import TranslationLanguage, TranslationStyle, PromptTemplate
+from src.models.settings import TranslationLanguage, TranslationStyle, PromptTemplate, OpenAISettings
 
 settings_api = Blueprint('settings_api', __name__)
 
@@ -149,4 +149,34 @@ def delete_template(id):
         return jsonify({'error': '系统预设模板不允许删除'}), 403
     db.session.delete(template)
     db.session.commit()
-    return '', 204 
+    return '', 204
+
+# OpenAI设置接口
+@settings_api.route('/openai_settings', methods=['GET'])
+def get_openai_settings():
+    """获取OpenAI设置"""
+    settings = OpenAISettings.query.first()
+    if not settings:
+        return jsonify({})
+    return jsonify(settings.to_dict())
+
+@settings_api.route('/openai_settings', methods=['POST'])
+def update_openai_settings():
+    """更新OpenAI设置"""
+    data = request.get_json()
+    settings = OpenAISettings.query.first()
+    
+    if not settings:
+        settings = OpenAISettings()
+        db.session.add(settings)
+    
+    settings.api_key = data.get('api_key')
+    settings.api_base = data.get('api_base')
+    settings.model_name = data.get('model_name')
+    settings.organization = data.get('organization')
+    settings.api_type = data.get('api_type')
+    settings.api_version = data.get('api_version')
+    settings.proxy = data.get('proxy')
+    
+    db.session.commit()
+    return jsonify(settings.to_dict()) 

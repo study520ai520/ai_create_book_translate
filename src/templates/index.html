@@ -687,7 +687,10 @@
                     <!-- 选项卡导航 -->
                     <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="languages-tab" data-bs-toggle="tab" data-bs-target="#languages" type="button" role="tab">目标语言</button>
+                            <button class="nav-link active" id="openai-tab" data-bs-toggle="tab" data-bs-target="#openai" type="button" role="tab">OpenAI设置</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="languages-tab" data-bs-toggle="tab" data-bs-target="#languages" type="button" role="tab">目标语言</button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="styles-tab" data-bs-toggle="tab" data-bs-target="#styles" type="button" role="tab">翻译风格</button>
@@ -699,8 +702,45 @@
                     
                     <!-- 选项卡内容 -->
                     <div class="tab-content mt-3" id="settingsTabContent">
+                        <!-- OpenAI设置 -->
+                        <div class="tab-pane fade show active" id="openai" role="tabpanel">
+                            <form id="openaiSettingsForm">
+                                <div class="mb-3">
+                                    <label for="apiKey" class="form-label">API Key</label>
+                                    <input type="password" class="form-control" id="apiKey" placeholder="输入OpenAI API Key">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="apiBase" class="form-label">API Base URL</label>
+                                    <input type="text" class="form-control" id="apiBase" placeholder="例如: https://api.openai.com/v1">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="modelName" class="form-label">Model Name</label>
+                                    <input type="text" class="form-control" id="modelName" placeholder="例如: gpt-3.5-turbo">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="organization" class="form-label">Organization ID</label>
+                                    <input type="text" class="form-control" id="organization" placeholder="可选">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="apiType" class="form-label">API Type</label>
+                                    <input type="text" class="form-control" id="apiType" placeholder="例如: open_ai">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="apiVersion" class="form-label">API Version</label>
+                                    <input type="text" class="form-control" id="apiVersion" placeholder="可选">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="proxy" class="form-label">Proxy</label>
+                                    <input type="text" class="form-control" id="proxy" placeholder="可选: 代理服务器地址">
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-primary" onclick="globalSettingsManager.saveOpenAISettings()">保存设置</button>
+                                </div>
+                            </form>
+                        </div>
+
                         <!-- 目标语言设置 -->
-                        <div class="tab-pane fade show active" id="languages" role="tabpanel">
+                        <div class="tab-pane fade" id="languages" role="tabpanel">
                             <div class="d-flex justify-content-end mb-3">
                                 <button class="btn btn-primary" onclick="showAddLanguageModal()">添加语言</button>
                             </div>

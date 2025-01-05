@@ -48,3 +48,26 @@ class PromptTemplate(db.Model):
             'is_enabled': self.is_enabled,
             'is_system': self.is_system
         } 
+
+class OpenAISettings(db.Model):
+    """OpenAI设置模型"""
+    id = db.Column(db.Integer, primary_key=True)
+    api_key = db.Column(db.String(200))
+    api_base = db.Column(db.String(200))
+    model_name = db.Column(db.String(50))
+    organization = db.Column(db.String(200))
+    api_type = db.Column(db.String(50))
+    api_version = db.Column(db.String(50))
+    proxy = db.Column(db.String(200))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'api_key': self.api_key,
+            'api_base': self.api_base,
+            'model_name': self.model_name,
+            'organization': self.organization,
+            'api_type': self.api_type,
+            'api_version': self.api_version,
+            'proxy': self.proxy
+        } 

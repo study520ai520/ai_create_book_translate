@@ -1,25 +1,141 @@
-# 书籍翻译器
+# AI 翻译助手
 
-这是一个基于Python和Flask的书籍翻译工具，支持多种文档格式的上传和翻译。
+一个基于 AI 的智能翻译工具，支持多语言翻译、多种翻译风格和自定义提示词模板。
 
 ## 功能特点
 
-- 支持上传PDF、TXT、DOC、DOCX格式的文档
-- 自动将文档分割成较小的文本碎片
-- 显示每本书的翻译进度
-- 支持查看和管理文本碎片
-- 提供翻译功能（需要配置翻译API）
+- 支持多种文档格式上传和翻译
+- 智能文本分段，确保翻译质量
+- 支持多语言翻译目标
+- 可选择不同翻译风格
+- 自定义提示词模板
+- 实时翻译进度显示
+- 支持多书籍同时翻译
+- 翻译队列管理
+- 导出双语对照文档
 
-## 安装要求
+## 项目结构
 
-1. Python 3.7+
-2. 所需Python包（在requirements.txt中列出）
+```
+translate_book/
+├── config/                 # 配置文件目录
+│   └── config.py          # 应用配置
+├── src/                   # 源代码目录
+│   ├── api/              # API 接口
+│   │   ├── book_api.py   # 书籍相关接口
+│   │   ├── settings_api.py # 设置相关接口
+│   │   └── translation_api.py # 翻译相关接口
+│   ├── models/           # 数据模型
+│   │   ├── book.py      # 书籍和片段模型
+│   │   └── settings.py  # 设置相关模型
+│   ├── services/        # 业务服务
+│   │   ├── document_service.py # 文档处理服务
+│   │   └── translation_service.py # 翻译服务
+│   ├── static/          # 静态资源
+│   │   ├── css/        # 样式文件
+│   │   └── js/         # JavaScript 文件
+│   │       ├── book-manager.js          # 书籍管理模块
+│   │       ├── translation-queue-manager.js # 翻译队列管理
+│   │       ├── translation-settings-manager.js # 翻译设置管理
+│   │       └── global-settings-manager.js # 全局设置管理
+│   ├── templates/       # 模板文件
+│   │   └── index.html  # 主页面
+│   ├── app.py          # 应用入口
+│   └── database.py     # 数据库配置
+└── uploads/            # 上传文件存储目录
+```
 
-## 安装步骤
+## 核心模块说明
 
-1. 克隆仓库：
+### 后端模块
+
+1. **API 模块** (`src/api/`)
+   - `book_api.py`: 处理书籍上传、查询、翻译和导出
+   - `settings_api.py`: 管理翻译语言、风格和模板设置
+   - `translation_api.py`: 处理单个片段的翻译请求
+
+2. **数据模型** (`src/models/`)
+   - `book.py`: 定义书籍和文本片段的数据结构
+   - `settings.py`: 定义翻译设置相关的数据结构
+
+3. **服务层** (`src/services/`)
+   - `document_service.py`: 处理文档解析和分段
+   - `translation_service.py`: 对接 AI 翻译服务
+
+### 前端模块
+
+1. **书籍管理** (`static/js/book-manager.js`)
+   - 书籍列表展示
+   - 上传和删除功能
+   - 翻译进度显示
+   - 导出功能
+
+2. **翻译队列管理** (`static/js/translation-queue-manager.js`)
+   - 翻译任务队列
+   - 进度显示
+   - 错误处理
+   - 实时日志
+
+3. **翻译设置管理** (`static/js/translation-settings-manager.js`)
+   - 翻译参数配置
+   - 语言选择
+   - 风格设置
+   - 模板管理
+
+4. **全局设置管理** (`static/js/global-settings-manager.js`)
+   - 系统设置管理
+   - 语言类型管理
+   - 翻译风格管理
+   - 提示词模板管理
+
+## 环境要求
+
+- Python 3.8+
+- Flask
+- SQLAlchemy
+- OpenAI API Key
+
+## 配置说明
+
+1. 创建 `.env` 文件，包含以下配置：
+```
+OPENAI_API_KEY=your_api_key
+MAX_TOKENS_PER_REQUEST=8000
+FRAGMENT_SIZE=2000
+FRAGMENT_MIN_SIZE=100
+FRAGMENT_OVERLAP=50
+```
+
+2. 配置数据库：
+```python
+SQLALCHEMY_DATABASE_URI = 'sqlite:///translate_book.db'
+```
+
+## 使用说明
+
+1. 上传文档：
+   - 支持 TXT、DOCX 等格式
+   - 自动分段处理
+
+2. 设置翻译参数：
+   - 选择目标语言
+   - 选择翻译风格
+   - 选择或自定义提示词模板
+
+3. 开始翻译：
+   - 点击"开始翻译"按钮
+   - 实时查看翻译进度
+   - 支持多本书籍同时翻译
+
+4. 导出结果：
+   - 导出双语对照文档
+   - 支持 DOCX 格式
+
+## 开发说明
+
+1. 克隆项目：
 ```bash
-git clone <repository-url>
+git clone https://github.com/your-repo/translate_book.git
 ```
 
 2. 安装依赖：
@@ -27,143 +143,12 @@ git clone <repository-url>
 pip install -r requirements.txt
 ```
 
-3. 运行应用：
+3. 初始化数据库：
 ```bash
-python run.py
+flask db upgrade
 ```
 
-## 使用说明
-
-1. 访问 http://localhost:5000
-2. 点击"上传"按钮上传文档
-3. 在左侧面板查看已上传的书籍列表和翻译进度
-4. 点击"查看碎片"按钮查看文档的详细内容
-5. 点击"翻译"按钮翻译各个文本碎片
-
-## 项目结构
-
-```
-.
-├── config/             # 配置文件
-│   └── config.py      # 应用配置
-├── src/               # 源代码
-│   ├── api/           # API路由
-│   │   ├── book_api.py
-│   │   └── translation_api.py
-│   ├── database/      # 数据库相关
-│   │   └── db.py
-│   ├── models/        # 数据模型
-│   │   ├── book.py
-│   │   └── fragment.py
-│   ├── services/      # 业务逻辑
-│   │   ├── document_service.py
-│   │   └── translation_service.py
-│   └── templates/     # HTML模板
-│       └── index.html
-├── uploads/           # 上传文件存储
-├── requirements.txt   # 项目依赖
-└── run.py            # 应用入口
-```
-
-## 配置说明
-
-- 在`config/config.py`中可以修改应用配置：
-  - 上传目录
-  - 数据库设置
-  - 文本切割大小
-  - 支持的文件类型等
-
-## 开发说明
-
-1. API模块：
-   - `book_api.py`: 处理书籍相关的API
-   - `translation_api.py`: 处理翻译相关的API
-
-2. 服务模块：
-   - `document_service.py`: 文档处理服务
-   - `translation_service.py`: 翻译服务
-
-3. 数据模型：
-   - `book.py`: 书籍模型
-   - `fragment.py`: 文本碎片模型
-
-## 注意事项
-
-- 目前翻译功能使用示例实现，需要在`services/translation_service.py`中配置实际的翻译API
-- 上传大文件时可能需要较长处理时间
-- 建议将文档切割大小控制在合理范围内 
-
-## 高级配置
-
-### 翻译API配置
-在 `config/config.py` 中配置翻译API相关参数：
-```python
-TRANSLATION_API_KEY = "your_api_key"
-TRANSLATION_API_URL = "https://api.translation.com"
-```
-
-### 数据库配置
-修改数据库连接参数：
-```python
-DATABASE_URL = "sqlite:///books.db"  # 默认使用SQLite
-# 或使用其他数据库
-# DATABASE_URL = "postgresql://user:password@localhost/dbname"
-```
-
-### 文件处理配置
-```python
-MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 最大上传文件大小（16MB）
-ALLOWED_EXTENSIONS = {'pdf', 'txt', 'doc', 'docx'}
-FRAGMENT_SIZE = 1000  # 文本碎片大小（字符数）
-```
-
-## 故障排除
-
-1. 文件上传失败
-   - 检查文件大小是否超过限制
-   - 确认文件格式是否支持
-   - 检查uploads目录权限
-
-2. 翻译服务异常
-   - 验证API密钥是否正确
-   - 检查网络连接
-   - 查看日志文件获取详细错误信息
-
-3. 数据库连接问题
-   - 确认数据库服务是否运行
-   - 检查数据库连接参数
-   - 验证数据库用户权限
-
-## 贡献指南
-
-1. Fork 项目仓库
-2. 创建特性分支：`git checkout -b feature/AmazingFeature`
-3. 提交更改：`git commit -m '添加新特性'`
-4. 推送分支：`git push origin feature/AmazingFeature`
-5. 提交 Pull Request
-
-### 代码规范
-- 遵循 PEP 8 Python代码风格指南
-- 添加适当的注释和文档字符串
-- 确保代码通过所有测试
-
-## 更新日志
-
-### v1.0.0 (2024-01-20)
-- 初始版本发布
-- 支持基本的文档上传和翻译功能
-- 实现文本碎片管理
-
-## 许可证
-
-本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
-
-## 联系方式
-
-如有问题或建议，请通过以下方式联系：
-- 提交 Issue
-- 发送邮件至：[your-email@example.com]
-
-## 致谢
-
-感谢所有为本项目做出贡献的开发者。 
+4. 运行项目：
+```bash
+flask run
+``` 

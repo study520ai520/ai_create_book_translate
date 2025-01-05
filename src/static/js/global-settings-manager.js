@@ -14,6 +14,9 @@ class GlobalSettingsManager {
             button.addEventListener('click', (e) => {
                 const tabId = e.target.getAttribute('data-bs-target').substring(1);
                 switch (tabId) {
+                    case 'openai':
+                        this.loadOpenAISettings();
+                        break;
                     case 'languages':
                         this.loadLanguages();
                         break;
@@ -36,10 +39,62 @@ class GlobalSettingsManager {
     // 初始化设置
     async initSettings() {
         await Promise.all([
+            this.loadOpenAISettings(),
             this.loadLanguages(),
             this.loadStyles(),
             this.loadTemplates()
         ]);
+    }
+
+    // 加载OpenAI设置
+    async loadOpenAISettings() {
+        try {
+            const response = await fetch('/api/openai_settings');
+            if (!response.ok) throw new Error('加载OpenAI设置失败');
+            const settings = await response.json();
+            
+            // 填充表单
+            document.getElementById('apiKey').value = settings.api_key || '';
+            document.getElementById('apiBase').value = settings.api_base || '';
+            document.getElementById('modelName').value = settings.model_name || '';
+            document.getElementById('organization').value = settings.organization || '';
+            document.getElementById('apiType').value = settings.api_type || '';
+            document.getElementById('apiVersion').value = settings.api_version || '';
+            document.getElementById('proxy').value = settings.proxy || '';
+        } catch (error) {
+            console.error('加载OpenAI设置失败:', error);
+            showToast('加载OpenAI设置失败', 'error');
+        }
+    }
+
+    // 保存OpenAI设置
+    async saveOpenAISettings() {
+        const data = {
+            api_key: document.getElementById('apiKey').value,
+            api_base: document.getElementById('apiBase').value,
+            model_name: document.getElementById('modelName').value,
+            organization: document.getElementById('organization').value,
+            api_type: document.getElementById('apiType').value,
+            api_version: document.getElementById('apiVersion').value,
+            proxy: document.getElementById('proxy').value
+        };
+
+        try {
+            const response = await fetch('/api/openai_settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) throw new Error('保存OpenAI设置失败');
+            
+            showToast('OpenAI设置已保存');
+        } catch (error) {
+            console.error('保存OpenAI设置失败:', error);
+            showToast('保存OpenAI设置失败', 'error');
+        }
     }
 
     // 加载语言列表
