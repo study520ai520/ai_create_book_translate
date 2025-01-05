@@ -89,13 +89,36 @@ def translate_remaining(book_id):
         total = len(fragments)
         translation_progress[book_id] = {'completed': 0, 'total': total}
         
+        # 获取书籍对象
+        book = Book.query.get_or_404(book_id)
+        
         for idx, fragment in enumerate(fragments, 1):
-            fragment.translated_text = translation_service.translate(fragment.original_text)
-            db.session.add(fragment)
-            # 更新进度
-            translation_progress[book_id]['completed'] = idx
+            try:
+                # 翻译单个片段
+                fragment.translated_text = translation_service.translate(fragment.original_text)
+                db.session.add(fragment)
+                # 立即提交每个翻译结果
+                db.session.commit()
+                
+                # 更新进度信息
+                translation_progress[book_id]['completed'] = idx
+                
+                # 更新书籍的翻译进度
+                total_fragments = Fragment.query.filter_by(book_id=book_id).count()
+                translated_fragments = Fragment.query.filter(
+                    Fragment.book_id == book_id,
+                    Fragment.translated_text != None,
+                    Fragment.translated_text != ""
+                ).count()
+                book.progress = round((translated_fragments / total_fragments) * 100)
+                db.session.add(book)
+                db.session.commit()
+                
+            except Exception as e:
+                # 如果单个片段翻译失败，记录错误但继续处理其他片段
+                current_app.logger.error(f"翻译片段 {fragment.id} 时出错: {str(e)}")
+                continue
             
-        db.session.commit()
         # 清理进度信息
         translation_progress.pop(book_id, None)
         return jsonify({'success': True})
@@ -113,6 +136,7 @@ def retranslate_book(book_id):
         
         # 删除所有现有碎片
         Fragment.query.filter_by(book_id=book_id).delete()
+        db.session.commit()
         
         # 重新处理文档
         filepath = os.path.join(Config.UPLOAD_FOLDER, book.name)
@@ -128,17 +152,30 @@ def retranslate_book(book_id):
         
         # 创建新碎片并翻译
         for idx, content in enumerate(fragments):
-            fragment = Fragment(
-                book_id=book.id,
-                fragment_number=idx + 1,
-                original_text=content,
-                translated_text=translation_service.translate(content)
-            )
-            db.session.add(fragment)
-            # 更新进度
-            translation_progress[book_id]['completed'] = idx + 1
+            try:
+                fragment = Fragment(
+                    book_id=book.id,
+                    fragment_number=idx + 1,
+                    original_text=content,
+                    translated_text=translation_service.translate(content)
+                )
+                db.session.add(fragment)
+                # 立即提交每个翻译结果
+                db.session.commit()
+                
+                # 更新进度
+                translation_progress[book_id]['completed'] = idx + 1
+                
+                # 更新书籍的翻译进度
+                book.progress = round(((idx + 1) / len(fragments)) * 100)
+                db.session.add(book)
+                db.session.commit()
+                
+            except Exception as e:
+                # 如果单个片段翻译失败，记录错误但继续处理其他片段
+                current_app.logger.error(f"重新翻译片段 {idx + 1} 时出错: {str(e)}")
+                continue
         
-        db.session.commit()
         # 清理进度信息
         translation_progress.pop(book_id, None)
         return jsonify({'success': True})
