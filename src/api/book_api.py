@@ -7,6 +7,7 @@ from docx import Document
 from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 import tempfile
+from config.config import Config
 
 book_api = Blueprint('book_api', __name__)
 document_service = DocumentService()
@@ -160,4 +161,24 @@ def export_book(book_id):
         )
         
     except Exception as e:
+        return jsonify({'error': str(e)}), 500 
+
+@book_api.route('/delete/<int:book_id>', methods=['DELETE'])
+def delete_book(book_id):
+    """删除书籍及其所有碎片"""
+    try:
+        book = Book.query.get_or_404(book_id)
+        
+        # 删除上传的原文件
+        filepath = os.path.join(Config.UPLOAD_FOLDER, book.name)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        
+        # 删除书籍（级联删除会自动删除相关的碎片）
+        db.session.delete(book)
+        db.session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500 

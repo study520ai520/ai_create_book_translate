@@ -312,6 +312,22 @@
             align-items: center;
             flex-wrap: wrap;
         }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .action-buttons .btn {
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -486,6 +502,10 @@
                                         onclick="exportBook(${book.id})">
                                     <i class="bi bi-file-earmark-word me-1"></i>导出文档
                                 </button>
+                                <button class="btn btn-danger" 
+                                        onclick="deleteBook(${book.id})">
+                                    <i class="bi bi-trash me-1"></i>删除
+                                </button>
                             </div>
                         </div>
                     `).join('');
@@ -590,6 +610,31 @@
             toggleLoading(true);
             window.location.href = `/export/${bookId}`;
             setTimeout(() => toggleLoading(false), 1000); // 1秒后隐藏加载动画
+        }
+
+        // 添加删除功能
+        function deleteBook(bookId) {
+            if (!confirm('确定要删除这本书吗？此操作不可恢复！')) return;
+            
+            toggleLoading(true);
+            fetch(`/delete/${bookId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    loadBooks();
+                    if (currentBookId === bookId) {
+                        fragmentModal.hide();
+                    }
+                } else {
+                    alert('删除失败：' + result.error);
+                }
+            })
+            .catch(error => {
+                alert('删除失败：' + error);
+            })
+            .finally(() => toggleLoading(false));
         }
     </script>
 </body>
