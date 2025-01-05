@@ -71,7 +71,12 @@ def get_fragments(book_id):
 def translate_remaining(book_id):
     """翻译书籍中所有未翻译的碎片"""
     try:
-        fragments = Fragment.query.filter_by(book_id=book_id, translated_text=None).all()
+        # 修改查询条件，同时匹配 None 和空字符串
+        fragments = Fragment.query.filter(
+            Fragment.book_id == book_id,
+            (Fragment.translated_text == None) | (Fragment.translated_text == "")  # noqa
+        ).all()
+        
         for fragment in fragments:
             fragment.translated_text = translation_service.translate(fragment.original_text)
             db.session.add(fragment)

@@ -92,3 +92,78 @@ python run.py
 - 目前翻译功能使用示例实现，需要在`services/translation_service.py`中配置实际的翻译API
 - 上传大文件时可能需要较长处理时间
 - 建议将文档切割大小控制在合理范围内 
+
+## 高级配置
+
+### 翻译API配置
+在 `config/config.py` 中配置翻译API相关参数：
+```python
+TRANSLATION_API_KEY = "your_api_key"
+TRANSLATION_API_URL = "https://api.translation.com"
+```
+
+### 数据库配置
+修改数据库连接参数：
+```python
+DATABASE_URL = "sqlite:///books.db"  # 默认使用SQLite
+# 或使用其他数据库
+# DATABASE_URL = "postgresql://user:password@localhost/dbname"
+```
+
+### 文件处理配置
+```python
+MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 最大上传文件大小（16MB）
+ALLOWED_EXTENSIONS = {'pdf', 'txt', 'doc', 'docx'}
+FRAGMENT_SIZE = 1000  # 文本碎片大小（字符数）
+```
+
+## 故障排除
+
+1. 文件上传失败
+   - 检查文件大小是否超过限制
+   - 确认文件格式是否支持
+   - 检查uploads目录权限
+
+2. 翻译服务异常
+   - 验证API密钥是否正确
+   - 检查网络连接
+   - 查看日志文件获取详细错误信息
+
+3. 数据库连接问题
+   - 确认数据库服务是否运行
+   - 检查数据库连接参数
+   - 验证数据库用户权限
+
+## 贡献指南
+
+1. Fork 项目仓库
+2. 创建特性分支：`git checkout -b feature/AmazingFeature`
+3. 提交更改：`git commit -m '添加新特性'`
+4. 推送分支：`git push origin feature/AmazingFeature`
+5. 提交 Pull Request
+
+### 代码规范
+- 遵循 PEP 8 Python代码风格指南
+- 添加适当的注释和文档字符串
+- 确保代码通过所有测试
+
+## 更新日志
+
+### v1.0.0 (2024-01-20)
+- 初始版本发布
+- 支持基本的文档上传和翻译功能
+- 实现文本碎片管理
+
+## 许可证
+
+本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
+
+## 联系方式
+
+如有问题或建议，请通过以下方式联系：
+- 提交 Issue
+- 发送邮件至：[your-email@example.com]
+
+## 致谢
+
+感谢所有为本项目做出贡献的开发者。 
