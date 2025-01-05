@@ -1,6 +1,7 @@
 import os
 from werkzeug.utils import secure_filename
 from config.config import Config
+import re
 
 class DocumentService:
     def allowed_file(self, filename):
@@ -27,55 +28,45 @@ class DocumentService:
     
     def split_text(self, text):
         """
-        将文本分割成碎片
-        使用配置的碎片大小、最小大小和重叠大小进行智能分割
+        将文本按句号分割成碎片
+        :param text: 要分割的文本
+        :return: 分割后的文本碎片列表
         """
-        # 获取配置值
+        # 获取配置的最大长度
         max_length = Config.FRAGMENT_SIZE
-        min_length = Config.FRAGMENT_MIN_SIZE
-        overlap = Config.FRAGMENT_OVERLAP
         
-        # 按段落分割
-        paragraphs = text.split('\n\n')
+        # 预处理文本：删除多余的空白字符
+        text = re.sub(r'\s+', ' ', text.strip())
+        
+        # 使用正则表达式按句号切分，保留句号
+        # 匹配中文句号和英文句号，但不包括小数点
+        sentences = re.split(r'([。.](?!\d))', text)
+        
+        # 合并句子和句号
+        sentences = [''.join(i) for i in zip(sentences[0::2], sentences[1::2] + [''])]
+        sentences = [s for s in sentences if s.strip()]  # 移除空字符串
+        
         fragments = []
         current_fragment = ''
         
-        for paragraph in paragraphs:
-            paragraph = paragraph.strip()
-            if not paragraph:
-                continue
-            
-            # 如果段落本身超过最大长度，需要进行分割
-            if len(paragraph) > max_length:
-                words = paragraph.split()
-                current_part = ''
-                
-                for word in words:
-                    if len(current_part) + len(word) + 1 <= max_length:
-                        current_part += (word + ' ')
-                    else:
-                        # 确保当前部分达到最小长度
-                        if len(current_part) >= min_length:
-                            fragments.append(current_part.strip())
-                            # 保留一部分内容作为重叠
-                            current_part = current_part[-overlap:] if overlap > 0 else ''
-                        current_part += (word + ' ')
-                
-                if current_part and len(current_part) >= min_length:
-                    fragments.append(current_part.strip())
-                continue
-            
-            # 处理正常大小的段落
-            if len(current_fragment) + len(paragraph) + 2 <= max_length:
-                current_fragment += paragraph + '\n\n'
-            else:
-                # 确保当前碎片达到最小长度
-                if current_fragment and len(current_fragment) >= min_length:
+        for sentence in sentences:
+            # 如果当前句子本身就超过最大长度，直接作为一个片段
+            if len(sentence) > max_length:
+                if current_fragment:
                     fragments.append(current_fragment.strip())
-                current_fragment = paragraph + '\n\n'
+                fragments.append(sentence.strip())
+                current_fragment = ''
+                continue
+            
+            # 如果添加当前句子后会超过最大长度
+            if len(current_fragment) + len(sentence) > max_length and current_fragment:
+                fragments.append(current_fragment.strip())
+                current_fragment = sentence
+            else:
+                current_fragment += sentence
         
-        # 添加最后一个碎片
-        if current_fragment and len(current_fragment) >= min_length:
+        # 添加最后一个片段（可能不以句号结尾）
+        if current_fragment:
             fragments.append(current_fragment.strip())
         
         return fragments 
