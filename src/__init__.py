@@ -2,11 +2,13 @@ import os
 from flask import Flask
 from config.config import config
 from src.database import init_db
-from src.api import book_api, translation_api
+from src.api import main_api, book_api, translation_api
 
 def create_app(config_name='default'):
     """创建Flask应用"""
-    app = Flask(__name__)
+    app = Flask(__name__, 
+                template_folder=os.path.join('src', 'templates'),
+                static_folder=os.path.join('src', 'static'))
     
     # 加载配置
     app.config.from_object(config[config_name])
@@ -18,6 +20,7 @@ def create_app(config_name='default'):
     init_db(app)
     
     # 注册蓝图
+    app.register_blueprint(main_api)
     app.register_blueprint(book_api)
     app.register_blueprint(translation_api)
     
