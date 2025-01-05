@@ -9,12 +9,15 @@ class Config:
     DEBUG = False
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev')
     
+    # 基础路径
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+    
     # 数据库配置
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///book_translate.db'
+    SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(BASE_DIR, "database.db")}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # 文件上传配置
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
     ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx'}
     

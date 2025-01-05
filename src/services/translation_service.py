@@ -117,15 +117,72 @@ class TranslationService:
         self.model = Config.OPENAI_MODEL
         logging.info(f"翻译服务初始化完成，使用模型：{self.model}")
 
-    def translate(self, text, target_lang='中文', style='准确、流畅', custom_prompt=None):
-        """翻译文本
-        这里是一个模拟的翻译服务，实际应用中需要替换为真实的翻译API调用
+    def translate(self, text, target_lang=None, style=None, custom_prompt=None):
         """
-        # 模拟翻译结果
-        if target_lang == '中文':
-            return f"这是一段模拟的{style}翻译：\n{text}"
-        else:
-            return f"This is a simulated {style} translation:\n{text}"
+        使用OpenAI API翻译文本
+        :param text: 要翻译的文本
+        :param target_lang: 目标语言
+        :param style: 翻译风格
+        :param custom_prompt: 自定义提示词
+        :return: 翻译后的文本
+        """
+        start_time = time.time()
+        text_preview = text[:100] + '...' if len(text) > 100 else text
+        logging.info(f"开始翻译文本: {text_preview}")
+        
+        try:
+            # 使用自定义提示词或默认提示词
+            if custom_prompt:
+                prompt = custom_prompt.format(
+                    text=text,
+                    target_lang=target_lang or self.DEFAULT_TARGET_LANG,
+                    style=style or self.DEFAULT_TRANSLATION_STYLE
+                )
+                logging.info("使用自定义提示词进行翻译")
+            else:
+                # 根据模板类型选择提示词
+                template = self.TEMPLATES.get(style, self.TEMPLATES['standard'])
+                prompt = template.format(
+                    text=text,
+                    target_lang=target_lang or self.DEFAULT_TARGET_LANG,
+                    style=style or self.DEFAULT_TRANSLATION_STYLE
+                )
+                logging.info(f"使用{style or 'standard'}模板进行翻译")
+
+            # 调用OpenAI API
+            logging.info(f"调用OpenAI API，模型：{self.model}")
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "你是一个专业的翻译助手，精通多国语言，擅长保持原文风格的翻译。"},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=Config.TEMPERATURE,
+                max_tokens=Config.MAX_TOKENS_PER_REQUEST,
+                top_p=1.0,
+                frequency_penalty=0.0,
+                presence_penalty=0.0
+            )
+
+            # 提取翻译结果
+            translated_text = response.choices[0].message.content.strip()
+            translation_preview = translated_text[:100] + '...' if len(translated_text) > 100 else translated_text
+            
+            # 计算耗时
+            end_time = time.time()
+            duration = round(end_time - start_time, 2)
+            
+            logging.info(f"翻译完成，耗时：{duration}秒")
+            logging.info(f"翻译结果: {translation_preview}")
+            
+            return translated_text
+
+        except Exception as e:
+            logging.error(f"翻译出错: {str(e)}")
+            logging.error(f"原文: {text_preview}")
+            logging.error(f"目标语言: {target_lang or self.DEFAULT_TARGET_LANG}")
+            logging.error(f"翻译风格: {style or self.DEFAULT_TRANSLATION_STYLE}")
+            return text  # 出错时返回原文
 
     def translate_batch(self, texts, target_lang=None, style=None, custom_prompt=None):
         """
