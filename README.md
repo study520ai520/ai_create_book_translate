@@ -29,7 +29,7 @@ pip install -r requirements.txt
 
 3. 运行应用：
 ```bash
-python app.py
+python run.py
 ```
 
 ## 使用说明
@@ -40,28 +40,58 @@ python app.py
 4. 点击"查看碎片"按钮查看文档的详细内容
 5. 点击"翻译"按钮翻译各个文本碎片
 
-## 注意事项
-
-- 目前翻译功能使用示例实现，需要替换为实际的翻译API
-- 上传大文件时可能需要较长处理时间
-- 建议将文档切割大小控制在合理范围内
-
-## 目录结构
+## 项目结构
 
 ```
 .
-├── app.py              # Flask应用主文件
-├── models.py           # 数据库模型
-├── document_processor.py # 文档处理模块
-├── translator.py       # 翻译模块
-├── requirements.txt    # 项目依赖
-├── templates/         # HTML模板
-│   └── index.html    # 主页面
-└── uploads/          # 上传文件存储目录
+├── config/             # 配置文件
+│   └── config.py      # 应用配置
+├── src/               # 源代码
+│   ├── api/           # API路由
+│   │   ├── book_api.py
+│   │   └── translation_api.py
+│   ├── database/      # 数据库相关
+│   │   └── db.py
+│   ├── models/        # 数据模型
+│   │   ├── book.py
+│   │   └── fragment.py
+│   ├── services/      # 业务逻辑
+│   │   ├── document_service.py
+│   │   └── translation_service.py
+│   ├── static/        # 静态文件
+│   ├── templates/     # HTML模板
+│   │   └── index.html
+│   └── utils/         # 工具函数
+├── tests/             # 测试文件
+├── uploads/           # 上传文件存储
+├── requirements.txt   # 项目依赖
+└── run.py            # 应用入口
 ```
 
 ## 配置说明
 
-- 在`app.py`中可以修改上传目录和数据库配置
-- 在`document_processor.py`中可以调整文本切割的大小
-- 在`translator.py`中需要配置实际的翻译API 
+- 在`config/config.py`中可以修改应用配置：
+  - 上传目录
+  - 数据库设置
+  - 文本切割大小
+  - 支持的文件类型等
+
+## 开发说明
+
+1. API模块：
+   - `book_api.py`: 处理书籍相关的API
+   - `translation_api.py`: 处理翻译相关的API
+
+2. 服务模块：
+   - `document_service.py`: 文档处理服务
+   - `translation_service.py`: 翻译服务
+
+3. 数据模型：
+   - `book.py`: 书籍模型
+   - `fragment.py`: 文本碎片模型
+
+## 注意事项
+
+- 目前翻译功能使用示例实现，需要在`services/translation_service.py`中配置实际的翻译API
+- 上传大文件时可能需要较长处理时间
+- 建议将文档切割大小控制在合理范围内 

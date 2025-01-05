@@ -3,8 +3,25 @@ import docx
 import PyPDF2
 import pdfplumber
 import magic
+from werkzeug.utils import secure_filename
+from config.config import Config
 
-class DocumentProcessor:
+class DocumentService:
+    """文档处理服务"""
+    
+    @staticmethod
+    def allowed_file(filename):
+        """检查文件类型是否允许"""
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
+
+    def save_file(self, file):
+        """保存上传的文件"""
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
+        file.save(filepath)
+        return filepath
+
     def extract_text(self, filepath):
         """从不同格式的文档中提取文本"""
         file_type = magic.from_file(filepath, mime=True)
@@ -36,9 +53,8 @@ class DocumentProcessor:
         with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
 
-    def split_text(self, text, max_length=1000):
+    def split_text(self, text):
         """将文本分割成较小的片段"""
-        # 首先按段落分割
         paragraphs = text.split('\n')
         fragments = []
         current_fragment = ""
@@ -48,16 +64,13 @@ class DocumentProcessor:
             if not para:
                 continue
                 
-            # 如果当前段落加上现有片段仍然在限制之内
-            if len(current_fragment) + len(para) <= max_length:
+            if len(current_fragment) + len(para) <= Config.MAX_FRAGMENT_LENGTH:
                 current_fragment += (para + "\n")
             else:
-                # 如果当前片段不为空，添加到结果中
                 if current_fragment:
                     fragments.append(current_fragment.strip())
                 current_fragment = para + "\n"
         
-        # 添加最后一个片段
         if current_fragment:
             fragments.append(current_fragment.strip())
             
