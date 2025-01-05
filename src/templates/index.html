@@ -299,6 +299,19 @@
                 width: 100%;
             }
         }
+
+        .btn-export {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            margin-left: auto;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body>
@@ -469,6 +482,10 @@
                                         onclick="retranslateAll(${book.id})">
                                     <i class="bi bi-arrow-repeat me-1"></i>重新翻译
                                 </button>
+                                <button class="btn btn-info" 
+                                        onclick="exportBook(${book.id})">
+                                    <i class="bi bi-file-earmark-word me-1"></i>导出文档
+                                </button>
                             </div>
                         </div>
                     `).join('');
@@ -566,6 +583,13 @@
                 }
             })
             .finally(() => toggleLoading(false));
+        }
+
+        // 添加导出功能
+        function exportBook(bookId) {
+            toggleLoading(true);
+            window.location.href = `/export/${bookId}`;
+            setTimeout(() => toggleLoading(false), 1000); // 1秒后隐藏加载动画
         }
     </script>
 </body>

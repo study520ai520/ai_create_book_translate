@@ -1,8 +1,12 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_file
 from src.services import DocumentService, TranslationService
 from src.models import Book, Fragment
 from src.database import db
 import os
+from docx import Document
+from docx.shared import Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+import tempfile
 
 book_api = Blueprint('book_api', __name__)
 document_service = DocumentService()
@@ -110,4 +114,50 @@ def retranslate_book(book_id):
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@book_api.route('/export/<int:book_id>', methods=['GET'])
+def export_book(book_id):
+    """导出书籍的原文和译文"""
+    try:
+        # 获取书籍信息
+        book = Book.query.get_or_404(book_id)
+        fragments = Fragment.query.filter_by(book_id=book_id).order_by(Fragment.fragment_number).all()
+        
+        # 创建Word文档
+        doc = Document()
+        
+        # 添加标题
+        title = doc.add_heading(book.name, level=1)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 添加内容
+        for fragment in fragments:
+            if fragment.translated_text:  # 只导出已翻译的部分
+                # 添加原文
+                p = doc.add_paragraph()
+                p.add_run('原文：').bold = True
+                p.add_run(fragment.original_text)
+                
+                # 添加译文
+                p = doc.add_paragraph()
+                p.add_run('译文：').bold = True
+                p.add_run(fragment.translated_text)
+                
+                # 添加分隔线
+                doc.add_paragraph('=' * 50)
+        
+        # 保存到临时文件
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
+        doc.save(temp_file.name)
+        
+        # 发送文件
+        return send_file(
+            temp_file.name,
+            as_attachment=True,
+            download_name=f"{book.name}_翻译.docx",
+            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        
+    except Exception as e:
         return jsonify({'error': str(e)}), 500 
