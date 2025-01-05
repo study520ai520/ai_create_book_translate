@@ -212,13 +212,22 @@ class BookManager {
                 method: 'POST'
             });
             
-            if (!response.ok) throw new Error('翻译失败');
+            const result = await response.json();
             
-            showToast('翻译任务已启动');
-            this.startTranslationProgress(bookId);
+            if (response.status === 206) {  // Partial Content
+                // 部分翻译失败
+                showToast('部分内容翻译失败，请查看详细信息', 'warning');
+                console.error('翻译错误详情:', result.details);
+                this.startTranslationProgress(bookId, true);  // 显示错误详情
+            } else if (!response.ok) {
+                throw new Error(result.error || '翻译失败');
+            } else {
+                showToast('翻译任务已启动');
+                this.startTranslationProgress(bookId);
+            }
         } catch (error) {
             console.error('翻译失败:', error);
-            showToast('翻译失败', 'error');
+            showToast(error.message || '翻译失败', 'error');
             hideLoading();
         }
     }
@@ -233,19 +242,28 @@ class BookManager {
                 method: 'POST'
             });
             
-            if (!response.ok) throw new Error('翻译失败');
+            const result = await response.json();
             
-            showToast('翻译任务已启动');
-            this.startTranslationProgress(bookId);
+            if (response.status === 206) {  // Partial Content
+                // 部分翻译失败
+                showToast('部分内容翻译失败，请查看详细信息', 'warning');
+                console.error('翻译错误详情:', result.details);
+                this.startTranslationProgress(bookId, true);  // 显示错误详情
+            } else if (!response.ok) {
+                throw new Error(result.error || '翻译失败');
+            } else {
+                showToast('翻译任务已启动');
+                this.startTranslationProgress(bookId);
+            }
         } catch (error) {
             console.error('翻译失败:', error);
-            showToast('翻译失败', 'error');
+            showToast(error.message || '翻译失败', 'error');
             hideLoading();
         }
     }
 
     // 监控翻译进度
-    startTranslationProgress(bookId) {
+    startTranslationProgress(bookId, hasErrors = false) {
         const progressCheck = async () => {
             try {
                 const response = await fetch(`/api/translation_progress/${bookId}`);
@@ -256,7 +274,20 @@ class BookManager {
                     // 翻译完成
                     hideLoading();
                     await this.loadBooks();
-                    showToast('翻译完成');
+                    
+                    if (hasErrors) {
+                        // 如果有错误，显示详细信息
+                        const errorLog = document.getElementById('logContent');
+                        if (errorLog) {
+                            errorLog.innerHTML += '<div class="error-info">翻译过程中出现以下错误：</div>';
+                            progress.errors.forEach(error => {
+                                errorLog.innerHTML += `<div class="error-info">${error}</div>`;
+                            });
+                        }
+                        document.getElementById('translationLog').classList.add('active');
+                    } else {
+                        showToast('翻译完成');
+                    }
                     return;
                 }
                 

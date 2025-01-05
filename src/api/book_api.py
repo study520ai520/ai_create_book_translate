@@ -157,48 +157,67 @@ def translate_remaining(book_id):
         ).all()
         
         total = len(fragments)
-        translation_progress[book_id] = {'completed': 0, 'total': total}
+        if total == 0:
+            return jsonify({'message': '没有需要翻译的内容'}), 200
+            
+        translation_progress[book_id] = {'completed': 0, 'total': total, 'errors': []}
         
         for idx, fragment in enumerate(fragments, 1):
             try:
                 # 使用书籍的翻译设置进行翻译
-                fragment.translated_text = translation_service.translate(
+                translated_text = translation_service.translate(
                     fragment.original_text,
                     target_lang=book.target_language,
                     style=book.translation_style,
                     custom_prompt=book.custom_prompt if book.custom_prompt else None
                 )
-                db.session.add(fragment)
-                # 立即提交每个翻译结果
-                db.session.commit()
                 
-                # 更新进度信息
-                translation_progress[book_id]['completed'] = idx
-                
-                # 更新书籍的翻译进度
-                total_fragments = Fragment.query.filter_by(book_id=book_id).count()
-                translated_fragments = Fragment.query.filter(
-                    Fragment.book_id == book_id,
-                    Fragment.translated_text != None,
-                    Fragment.translated_text != ""
-                ).count()
-                book.progress = round((translated_fragments / total_fragments) * 100)
-                db.session.add(book)
-                db.session.commit()
+                if translated_text:  # 只有在成功获取译文时才更新
+                    fragment.translated_text = translated_text
+                    db.session.add(fragment)
+                    # 立即提交每个翻译结果
+                    db.session.commit()
+                    
+                    # 更新进度信息
+                    translation_progress[book_id]['completed'] = idx
+                    
+                    # 更新书籍的翻译进度
+                    total_fragments = Fragment.query.filter_by(book_id=book_id).count()
+                    translated_fragments = Fragment.query.filter(
+                        Fragment.book_id == book_id,
+                        Fragment.translated_text != None,
+                        Fragment.translated_text != ""
+                    ).count()
+                    book.progress = round((translated_fragments / total_fragments) * 100)
+                    db.session.add(book)
+                    db.session.commit()
                 
             except Exception as e:
-                # 如果单个片段翻译失败，记录错误但继续处理其他片段
-                current_app.logger.error(f"翻译片段 {fragment.id} 时出错: {str(e)}")
+                error_msg = f"翻译碎片 #{fragment.fragment_number} 失败: {str(e)}"
+                current_app.logger.error(error_msg)
+                translation_progress[book_id]['errors'].append(error_msg)
                 continue
-            
-        # 清理进度信息
-        translation_progress.pop(book_id, None)
+        
+        # 检查是否有错误发生
+        if translation_progress[book_id].get('errors'):
+            error_summary = "\n".join(translation_progress[book_id]['errors'])
+            return jsonify({
+                'warning': '部分内容翻译失败',
+                'details': error_summary,
+                'completed': translation_progress[book_id]['completed'],
+                'total': total
+            }), 206  # Partial Content
+        
         return jsonify({'success': True})
+        
     except Exception as e:
         db.session.rollback()
+        error_msg = f"翻译过程出错: {str(e)}"
+        current_app.logger.error(error_msg)
+        return jsonify({'error': error_msg}), 500
+    finally:
         # 清理进度信息
         translation_progress.pop(book_id, None)
-        return jsonify({'error': str(e)}), 500
 
 @book_api.route('/retranslate/<int:book_id>', methods=['POST'])
 def retranslate_book(book_id):

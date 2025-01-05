@@ -108,14 +108,18 @@ class TranslationService:
     
     def __init__(self):
         """初始化OpenAI客户端"""
-        self.client = OpenAI(
-            api_key=Config.OPENAI_API_KEY,
-            base_url=Config.OPENAI_API_BASE or None,
-            organization=Config.OPENAI_ORGANIZATION or None,
-            timeout=Config.TIMEOUT
-        )
-        self.model = Config.OPENAI_MODEL
-        logging.info(f"翻译服务初始化完成，使用模型：{self.model}")
+        try:
+            self.client = OpenAI(
+                api_key=Config.OPENAI_API_KEY,
+                base_url=Config.OPENAI_API_BASE or None,
+                organization=Config.OPENAI_ORGANIZATION or None,
+                timeout=Config.TIMEOUT
+            )
+            self.model = Config.OPENAI_MODEL
+            logging.info(f"翻译服务初始化完成，使用模型：{self.model}")
+        except Exception as e:
+            logging.error(f"翻译服务初始化失败: {str(e)}")
+            raise Exception(f"翻译服务初始化失败: {str(e)}")
 
     def translate(self, text, target_lang=None, style=None, custom_prompt=None):
         """
@@ -125,6 +129,7 @@ class TranslationService:
         :param style: 翻译风格
         :param custom_prompt: 自定义提示词
         :return: 翻译后的文本
+        :raises: Exception 当翻译失败时
         """
         start_time = time.time()
         text_preview = text[:100] + '...' if len(text) > 100 else text
@@ -166,6 +171,9 @@ class TranslationService:
 
             # 提取翻译结果
             translated_text = response.choices[0].message.content.strip()
+            if not translated_text:
+                raise Exception("API返回了空的翻译结果")
+
             translation_preview = translated_text[:100] + '...' if len(translated_text) > 100 else translated_text
             
             # 计算耗时
@@ -178,11 +186,12 @@ class TranslationService:
             return translated_text
 
         except Exception as e:
-            logging.error(f"翻译出错: {str(e)}")
+            error_msg = f"翻译失败: {str(e)}"
+            logging.error(error_msg)
             logging.error(f"原文: {text_preview}")
             logging.error(f"目标语言: {target_lang or self.DEFAULT_TARGET_LANG}")
             logging.error(f"翻译风格: {style or self.DEFAULT_TRANSLATION_STYLE}")
-            return text  # 出错时返回原文
+            raise Exception(error_msg)  # 抛出异常而不是返回原文
 
     def translate_batch(self, texts, target_lang=None, style=None, custom_prompt=None):
         """
@@ -192,6 +201,7 @@ class TranslationService:
         :param style: 翻译风格
         :param custom_prompt: 自定义提示词
         :return: 翻译后的文本列表
+        :raises: Exception 当批量翻译失败时
         """
         total_texts = len(texts)
         logging.info(f"开始批量翻译，共 {total_texts} 个文本")
@@ -200,6 +210,7 @@ class TranslationService:
         translated_texts = []
         success_count = 0
         error_count = 0
+        errors = []
         
         for i, text in enumerate(texts, 1):
             try:
@@ -209,8 +220,10 @@ class TranslationService:
                 success_count += 1
                 
             except Exception as e:
-                logging.error(f"第 {i} 个文本翻译失败: {str(e)}")
-                translated_texts.append(text)  # 出错时保留原文
+                error_msg = f"第 {i} 个文本翻译失败: {str(e)}"
+                logging.error(error_msg)
+                errors.append(error_msg)
+                translated_texts.append(None)  # 使用 None 标记失败的翻译
                 error_count += 1
         
         # 计算总耗时和统计信息
@@ -223,5 +236,9 @@ class TranslationService:
         logging.info(f"- 平均每个文本耗时: {avg_duration}秒")
         logging.info(f"- 成功: {success_count}")
         logging.info(f"- 失败: {error_count}")
+        
+        if error_count > 0:
+            error_summary = "\n".join(errors)
+            raise Exception(f"批量翻译部分失败 ({error_count}/{total_texts}):\n{error_summary}")
         
         return translated_texts 
