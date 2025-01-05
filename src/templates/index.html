@@ -328,6 +328,48 @@
         .action-buttons .btn {
             white-space: nowrap;
         }
+
+        .confirm-modal .modal-content {
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+        }
+        
+        .confirm-modal .modal-header {
+            border: none;
+            padding: 1.5rem 1.5rem 0.5rem;
+        }
+        
+        .confirm-modal .modal-body {
+            padding: 1rem 1.5rem;
+            color: var(--text-color);
+        }
+        
+        .confirm-modal .modal-footer {
+            border: none;
+            padding: 0.5rem 1.5rem 1.5rem;
+            justify-content: flex-end;
+            gap: 0.8rem;
+        }
+        
+        .confirm-modal .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+        
+        .confirm-modal .btn-confirm {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+            color: white;
+        }
+        
+        .confirm-modal .btn-cancel {
+            background-color: #e9ecef;
+            border-color: #e9ecef;
+            color: var(--text-color);
+        }
     </style>
 </head>
 <body>
@@ -387,15 +429,40 @@
         </div>
     </div>
 
+    <!-- 确认对话框 -->
+    <div class="modal fade confirm-modal" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span id="confirmTitle">确认操作</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-confirm" id="confirmButton">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // 全局变量
         let fragmentModal;
         let currentBookId;
+        let confirmModal;
+        let confirmCallback;
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             fragmentModal = new bootstrap.Modal(document.getElementById('fragmentModal'));
+            confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
             loadBooks();
             
             // 处理文件拖放
@@ -567,42 +634,50 @@
 
         // 翻译剩余未翻译的碎片
         function translateRemaining(bookId) {
-            if (!confirm('确定要翻译所有未翻译的碎片吗？')) return;
-            
-            toggleLoading(true);
-            fetch(`/translate_remaining/${bookId}`, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    loadBooks();
-                    if (currentBookId === bookId) {
-                        loadFragments(bookId);
-                    }
+            showConfirm(
+                '批量翻译确认',
+                '确定要翻译所有未翻译的碎片吗？这可能需要一些时间。',
+                function() {
+                    toggleLoading(true);
+                    fetch(`/translate_remaining/${bookId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            loadBooks();
+                            if (currentBookId === bookId) {
+                                loadFragments(bookId);
+                            }
+                        }
+                    })
+                    .finally(() => toggleLoading(false));
                 }
-            })
-            .finally(() => toggleLoading(false));
+            );
         }
 
         // 重新翻译所有碎片
         function retranslateAll(bookId) {
-            if (!confirm('确定要重新翻译所有碎片吗？这将清空现有翻译！')) return;
-            
-            toggleLoading(true);
-            fetch(`/retranslate/${bookId}`, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    loadBooks();
-                    if (currentBookId === bookId) {
-                        loadFragments(bookId);
-                    }
+            showConfirm(
+                '重新翻译确认',
+                '确定要重新翻译所有碎片吗？这将清空现有翻译内容，且需要一些时间。',
+                function() {
+                    toggleLoading(true);
+                    fetch(`/retranslate/${bookId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            loadBooks();
+                            if (currentBookId === bookId) {
+                                loadFragments(bookId);
+                            }
+                        }
+                    })
+                    .finally(() => toggleLoading(false));
                 }
-            })
-            .finally(() => toggleLoading(false));
+            );
         }
 
         // 添加导出功能
@@ -614,27 +689,50 @@
 
         // 添加删除功能
         function deleteBook(bookId) {
-            if (!confirm('确定要删除这本书吗？此操作不可恢复！')) return;
-            
-            toggleLoading(true);
-            fetch(`/delete/${bookId}`, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    loadBooks();
-                    if (currentBookId === bookId) {
-                        fragmentModal.hide();
-                    }
-                } else {
-                    alert('删除失败：' + result.error);
+            showConfirm(
+                '删除确认',
+                '确定要删除这本书吗？此操作将永久删除该书籍及其所有翻译内容，且不可恢复。',
+                function() {
+                    toggleLoading(true);
+                    fetch(`/delete/${bookId}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            loadBooks();
+                            if (currentBookId === bookId) {
+                                fragmentModal.hide();
+                            }
+                        } else {
+                            showConfirm('操作失败', result.error || '删除失败，请重试', () => {});
+                        }
+                    })
+                    .catch(error => {
+                        showConfirm('操作失败', error.toString(), () => {});
+                    })
+                    .finally(() => toggleLoading(false));
                 }
-            })
-            .catch(error => {
-                alert('删除失败：' + error);
-            })
-            .finally(() => toggleLoading(false));
+            );
+        }
+
+        // 添加确认对话框相关变量
+        let confirmModal;
+        let confirmCallback;
+        
+        // 添加显示确认对话框函数
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            confirmCallback = callback;
+            
+            const confirmButton = document.getElementById('confirmButton');
+            confirmButton.onclick = function() {
+                confirmModal.hide();
+                callback();
+            };
+            
+            confirmModal.show();
         }
     </script>
 </body>
