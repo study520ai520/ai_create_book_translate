@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 class Config:
     # 基础配置
@@ -11,10 +15,22 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # 文本处理配置
-    MAX_FRAGMENT_LENGTH = 1000  # 每个文本碎片的最大长度
+    DEFAULT_MAX_TOKENS = 500  # 默认每个碎片的最大token数
+    MIN_TOKENS = 100  # 最小token数
+    MAX_TOKENS = 2000  # 最大token数
+    MUST_END_WITH_PERIOD = True  # 是否必须以句号结尾
+    SPLIT_BY_SENTENCE = True  # 是否按句子分割
 
     # 支持的文件类型
     ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx'}
+
+    # OpenAI配置
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+    OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
+    DEFAULT_TRANSLATION_PROMPT = os.getenv('DEFAULT_TRANSLATION_PROMPT', 
+        "请将以下文本翻译成{target_lang}，保持原文的语气和风格：\n\n{text}")
+    DEFAULT_TARGET_LANG = os.getenv('DEFAULT_TARGET_LANG', '中文')
+    DEFAULT_TRANSLATION_STYLE = os.getenv('DEFAULT_TRANSLATION_STYLE', '准确、流畅')
 
 class DevelopmentConfig(Config):
     DEBUG = True
