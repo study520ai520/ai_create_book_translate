@@ -15,9 +15,9 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # 文本处理配置
-    DEFAULT_MAX_TOKENS = 500  # 默认每个碎片的最大token数
+    DEFAULT_MAX_TOKENS = 200  # 默认每个碎片的最大token数
     MIN_TOKENS = 100  # 最小token数
-    MAX_TOKENS = 2000  # 最大token数
+    MAX_TOKENS = 200  # 最大token数
     MUST_END_WITH_PERIOD = True  # 是否必须以句号结尾
     SPLIT_BY_SENTENCE = True  # 是否按句子分割
 

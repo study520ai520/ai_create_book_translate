@@ -7,66 +7,221 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        .progress {
-            height: 20px;
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f6fa;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --text-color: #2c3e50;
+            --border-radius: 12px;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
+        body {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .navbar {
+            background-color: white;
+            box-shadow: var(--card-shadow);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .upload-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            border: none;
+            margin-bottom: 2rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed #ddd;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(74, 144, 226, 0.05);
+        }
+
         .book-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
             padding: 1rem;
         }
+
         .book-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 1rem;
             background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease;
+            border: none;
         }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .book-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            background-color: #eee;
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            background-color: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+            color: #fff;
+        }
+
+        .modal-content {
+            border-radius: var(--border-radius);
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #eee;
+            padding: 1.5rem;
+        }
+
         .modal-body {
+            padding: 1.5rem;
             max-height: 70vh;
             overflow-y: auto;
         }
-        .fragment-list {
-            max-height: 100%;
-            overflow-y: auto;
+
+        .fragment-card {
+            background: #fff;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #eee;
+            transition: box-shadow 0.2s ease;
         }
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
+
+        .fragment-card:hover {
+            box-shadow: var(--card-shadow);
         }
+
+        .fragment-number {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .text-section {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+
+        .text-section strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
         .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
         }
+
         .loading-spinner {
-            width: 3rem;
-            height: 3rem;
+            width: 4rem;
+            height: 4rem;
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .book-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid mt-5">
-        <h1 class="mb-4">书籍翻译器</h1>
-        
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container">
+            <span class="navbar-brand">
+                <i class="bi bi-book"></i> 书籍翻译器
+            </span>
+        </div>
+    </nav>
+
+    <div class="container">
         <!-- 文件上传 -->
-        <div class="card mb-4">
+        <div class="upload-card card">
             <div class="card-body">
-                <h5 class="card-title">上传书籍</h5>
-                <form id="uploadForm" class="mb-3">
-                    <div class="mb-3">
-                        <input type="file" class="form-control" id="bookFile" accept=".pdf,.txt,.doc,.docx">
+                <form id="uploadForm">
+                    <div class="upload-zone" onclick="document.getElementById('bookFile').click()">
+                        <i class="bi bi-cloud-upload fs-1 text-primary mb-3"></i>
+                        <h5>点击或拖拽文件到此处上传</h5>
+                        <p class="text-muted">支持 PDF、TXT、DOC、DOCX 格式</p>
+                        <input type="file" class="d-none" id="bookFile" accept=".pdf,.txt,.doc,.docx">
                     </div>
-                    <button type="submit" class="btn btn-primary">上传</button>
                 </form>
             </div>
         </div>
@@ -82,11 +237,13 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">碎片详情</h5>
+                    <h5 class="modal-title">
+                        <i class="bi bi-file-text me-2"></i>碎片详情
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="fragment-list" id="fragmentList">
+                    <div id="fragmentList">
                         <!-- 碎片列表将通过JavaScript动态添加 -->
                     </div>
                 </div>
@@ -96,7 +253,7 @@
 
     <!-- 加载动画 -->
     <div class="loading d-none" id="loading">
-        <div class="spinner-border text-primary loading-spinner" role="status">
+        <div class="spinner-border loading-spinner" role="status">
             <span class="visually-hidden">加载中...</span>
         </div>
     </div>
@@ -111,12 +268,66 @@
         document.addEventListener('DOMContentLoaded', function() {
             fragmentModal = new bootstrap.Modal(document.getElementById('fragmentModal'));
             loadBooks();
+            
+            // 处理文件拖放
+            const uploadZone = document.querySelector('.upload-zone');
+            
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = 'var(--primary-color)';
+                uploadZone.style.backgroundColor = 'rgba(74, 144, 226, 0.05)';
+            });
+            
+            uploadZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = '#ddd';
+                uploadZone.style.backgroundColor = 'transparent';
+            });
+            
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = '#ddd';
+                uploadZone.style.backgroundColor = 'transparent';
+                
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    document.getElementById('bookFile').files = e.dataTransfer.files;
+                    handleUpload(file);
+                }
+            });
         });
 
         // 显示/隐藏加载动画
         function toggleLoading(show) {
             document.getElementById('loading').classList.toggle('d-none', !show);
         }
+
+        // 处理文件上传
+        function handleUpload(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            toggleLoading(true);
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    loadBooks();
+                    document.getElementById('bookFile').value = '';
+                }
+            })
+            .finally(() => toggleLoading(false));
+        }
+
+        // 监听文件选择
+        document.getElementById('bookFile').addEventListener('change', function(e) {
+            if (this.files[0]) {
+                handleUpload(this.files[0]);
+            }
+        });
 
         // 加载书籍列表
         function loadBooks() {
@@ -126,28 +337,32 @@
                     const bookList = document.getElementById('bookList');
                     bookList.innerHTML = books.map(book => `
                         <div class="book-card">
-                            <h5 class="card-title">${book.name}</h5>
-                            <div class="progress mb-2">
+                            <h5 class="book-title">
+                                <i class="bi bi-book me-2"></i>${book.name}
+                            </h5>
+                            <div class="progress">
                                 <div class="progress-bar" role="progressbar" 
                                      style="width: ${book.progress}%" 
                                      aria-valuenow="${book.progress}" 
                                      aria-valuemin="0" 
                                      aria-valuemax="100">
-                                    ${book.progress}%
                                 </div>
                             </div>
+                            <div class="text-center mb-2">
+                                <span class="text-muted">翻译进度：${book.progress}%</span>
+                            </div>
                             <div class="action-buttons">
-                                <button class="btn btn-sm btn-primary" 
+                                <button class="btn btn-primary" 
                                         onclick="showFragments(${book.id})">
-                                    查看详情
+                                    <i class="bi bi-eye me-1"></i>查看详情
                                 </button>
-                                <button class="btn btn-sm btn-success" 
+                                <button class="btn btn-success" 
                                         onclick="translateRemaining(${book.id})">
-                                    一键翻译
+                                    <i class="bi bi-translate me-1"></i>一键翻译
                                 </button>
-                                <button class="btn btn-sm btn-warning" 
+                                <button class="btn btn-warning" 
                                         onclick="retranslateAll(${book.id})">
-                                    重新翻译
+                                    <i class="bi bi-arrow-repeat me-1"></i>重新翻译
                                 </button>
                             </div>
                         </div>
@@ -169,24 +384,24 @@
                 .then(fragments => {
                     const fragmentList = document.getElementById('fragmentList');
                     fragmentList.innerHTML = fragments.map(fragment => `
-                        <div class="card mb-2">
-                            <div class="card-body">
-                                <h6 class="card-title">碎片 #${fragment.number}</h6>
-                                <div class="mb-2">
-                                    <strong>原文：</strong>
-                                    <p>${fragment.original_text}</p>
-                                </div>
-                                <div class="mb-2">
-                                    <strong>译文：</strong>
-                                    <p>${fragment.translated_text || '未翻译'}</p>
-                                </div>
-                                ${!fragment.translated_text ? `
-                                    <button class="btn btn-sm btn-success" 
-                                            onclick="translateFragment(${fragment.id})">
-                                        翻译
-                                    </button>
-                                ` : ''}
+                        <div class="fragment-card">
+                            <div class="fragment-number">
+                                <i class="bi bi-hash"></i>碎片 ${fragment.number}
                             </div>
+                            <div class="text-section">
+                                <strong><i class="bi bi-file-text me-2"></i>原文</strong>
+                                <p class="mb-0">${fragment.original_text}</p>
+                            </div>
+                            <div class="text-section">
+                                <strong><i class="bi bi-translate me-2"></i>译文</strong>
+                                <p class="mb-0">${fragment.translated_text || '未翻译'}</p>
+                            </div>
+                            ${!fragment.translated_text ? `
+                                <button class="btn btn-success mt-2" 
+                                        onclick="translateFragment(${fragment.id})">
+                                    <i class="bi bi-translate me-1"></i>翻译此段
+                                </button>
+                            ` : ''}
                         </div>
                     `).join('');
                 });
@@ -247,28 +462,6 @@
             })
             .finally(() => toggleLoading(false));
         }
-
-        // 处理文件上传
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData();
-            const fileInput = document.getElementById('bookFile');
-            formData.append('file', fileInput.files[0]);
-
-            toggleLoading(true);
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    loadBooks();
-                    fileInput.value = '';
-                }
-            })
-            .finally(() => toggleLoading(false));
-        });
     </script>
 </body>
 </html> 
