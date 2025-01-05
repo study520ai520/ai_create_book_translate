@@ -508,7 +508,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="saveTranslationSettings">保存并开始翻译</button>
+                    <button type="button" class="btn btn-primary" id="saveTranslationSettings">保存设置</button>
                 </div>
             </div>
         </div>
@@ -787,9 +787,12 @@
                             () => startTranslation(bookId)
                         );
                     } else {
-                        // 如果没有设置，显示设置对话框
-                        currentBookId = bookId;
-                        translationSettingsModal.show();
+                        // 如果没有设置，提示先设置
+                        showConfirm(
+                            '需要设置',
+                            '请先配置翻译设置后再开始翻译。',
+                            () => showTranslationSettings(bookId)
+                        );
                     }
                 });
         }
@@ -889,7 +892,7 @@
             confirmModal.show();
         }
 
-        // 保存翻译设置并开始翻译
+        // 修改保存翻译设置函数
         function saveTranslationSettings(bookId, settings) {
             fetch(`/save_translation_settings/${bookId}`, {
                 method: 'POST',
@@ -902,8 +905,8 @@
             .then(result => {
                 if (result.success) {
                     translationSettingsModal.hide();
-                    // 保存设置后开始翻译
-                    startTranslation(bookId);
+                    showLog('翻译设置保存成功！', 'progress');
+                    loadBooks();  // 刷新书籍列表以显示新的设置
                 } else {
                     showLog(`设置保存失败: ${result.error}`, 'error');
                 }

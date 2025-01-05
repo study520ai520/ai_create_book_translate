@@ -100,16 +100,23 @@ def save_translation_settings(book_id):
         book = Book.query.get_or_404(book_id)
         settings = request.json
         
+        # 更新翻译设置
         book.target_language = settings.get('target_language', '中文')
         book.translation_style = settings.get('translation_style', '准确、流畅')
         book.prompt_template = settings.get('prompt_template', 'standard')
         book.custom_prompt = settings.get('custom_prompt', '')
         
         db.session.commit()
-        return jsonify({'success': True})
+        return jsonify({
+            'success': True,
+            'message': '翻译设置已保存'
+        })
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @book_api.route('/translate_remaining/<int:book_id>', methods=['POST'])
 def translate_remaining(book_id):
