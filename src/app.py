@@ -11,9 +11,9 @@ def create_app():
     # 初始化数据库
     db.init_app(app)
     
-    # 注册蓝图
-    app.register_blueprint(book_api, url_prefix='/')
-    app.register_blueprint(settings_api, url_prefix='/')
+    # 注册蓝图 - 修改URL前缀
+    app.register_blueprint(book_api, url_prefix='/api')
+    app.register_blueprint(settings_api, url_prefix='/api')
     
     with app.app_context():
         db.create_all()

@@ -838,7 +838,7 @@
             formData.append('file', file);
 
             toggleLoading(true);
-            fetch('/upload', {
+            fetch('/api/upload', {
                 method: 'POST',
                 body: formData
             })
@@ -861,7 +861,7 @@
 
         // 加载书籍列表
         function loadBooks() {
-            fetch('/books')
+            fetch('/api/books')
                 .then(response => response.json())
                 .then(books => {
                     const bookList = document.getElementById('bookList');
@@ -941,9 +941,9 @@
             
             // 加载所有可用选项
             Promise.all([
-                fetch('/languages').then(response => response.json()),
-                fetch('/styles').then(response => response.json()),
-                fetch('/templates').then(response => response.json())
+                fetch('/api/languages').then(response => response.json()),
+                fetch('/api/styles').then(response => response.json()),
+                fetch('/api/templates').then(response => response.json())
             ]).then(([languages, styles, templates]) => {
                 // 填充语言选项
                 const targetLanguageSelect = document.getElementById('targetLanguage');
@@ -967,7 +967,7 @@
                     .join('');
                 
                 // 获取当前设置
-                fetch(`/translation_settings/${bookId}`)
+                fetch(`/api/translation_settings/${bookId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.settings) {
@@ -998,7 +998,7 @@
 
         // 加载碎片列表
         function loadFragments(bookId) {
-            fetch(`/book/${bookId}/fragments`)
+            fetch(`/api/book/${bookId}/fragments`)
                 .then(response => response.json())
                 .then(fragments => {
                     const fragmentList = document.getElementById('fragmentList');
@@ -1031,7 +1031,7 @@
             showTranslationLog();
             showLog('开始翻译片段...');
             
-            fetch(`/translate/${fragmentId}`, {
+            fetch(`/api/translate/${fragmentId}`, {
                 method: 'POST'
             })
             .then(response => response.json())
@@ -1068,7 +1068,7 @@
         // 修改翻译剩余碎片的函数
         function translateRemaining(bookId) {
             // 先检查是否已有翻译设置
-            fetch(`/translation_settings/${bookId}`)
+            fetch(`/api/translation_settings/${bookId}`)
                 .then(response => response.json())
                 .then(settings => {
                     if (settings.has_settings) {
@@ -1100,7 +1100,7 @@
 
                     // 开始轮询翻译进度
                     const progressInterval = setInterval(() => {
-                        fetch(`/translation_progress/${bookId}`)
+                        fetch(`/api/translation_progress/${bookId}`)
                             .then(response => response.json())
                             .then(data => {
                                 if (data.total > 0) {
@@ -1110,7 +1110,7 @@
                             });
                     }, 1000);
 
-                    fetch(`/retranslate/${bookId}`, {
+                    fetch(`/api/retranslate/${bookId}`, {
                         method: 'POST'
                     })
                     .then(response => response.json())
@@ -1137,7 +1137,7 @@
         // 导出文档
         function exportBook(bookId) {
             toggleLoading(true);
-            window.location.href = `/export/${bookId}`;
+            window.location.href = `/api/export/${bookId}`;
             setTimeout(() => toggleLoading(false), 1000);
         }
 
@@ -1148,7 +1148,7 @@
                 '确定要删除这本书吗？此操作将永久删除该书籍及其所有翻译内容，且不可恢复。',
                 function() {
                     toggleLoading(true);
-                    fetch(`/delete/${bookId}`, {
+                    fetch(`/api/delete/${bookId}`, {
                         method: 'DELETE'
                     })
                     .then(response => response.json())
@@ -1186,7 +1186,7 @@
 
         // 修改保存翻译设置函数
         function saveTranslationSettings(bookId, settings) {
-            fetch(`/save_translation_settings/${bookId}`, {
+            fetch(`/api/save_translation_settings/${bookId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1223,7 +1223,7 @@
 
             // 开始轮询翻译进度
             const progressInterval = setInterval(() => {
-                fetch(`/translation_progress/${bookId}`)
+                fetch(`/api/translation_progress/${bookId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.total > 0) {
@@ -1233,7 +1233,7 @@
                     });
             }, 1000);
 
-            fetch(`/translate_remaining/${bookId}`, {
+            fetch(`/api/translate_remaining/${bookId}`, {
                 method: 'POST'
             })
             .then(response => response.json())
@@ -1265,7 +1265,7 @@
 
         // 加载语言列表
         function loadLanguages() {
-            fetch('/languages')
+            fetch('/api/languages')
                 .then(response => response.json())
                 .then(languages => {
                     const languagesList = document.getElementById('languagesList');
@@ -1295,7 +1295,7 @@
 
         // 加载风格列表
         function loadStyles() {
-            fetch('/styles')
+            fetch('/api/styles')
                 .then(response => response.json())
                 .then(styles => {
                     const stylesList = document.getElementById('stylesList');
@@ -1325,7 +1325,7 @@
 
         // 加载模板列表
         function loadTemplates() {
-            fetch('/templates')
+            fetch('/api/templates')
                 .then(response => response.json())
                 .then(templates => {
                     const templatesList = document.getElementById('templatesList');
@@ -1367,7 +1367,7 @@
         }
 
         function editLanguage(id) {
-            fetch(`/languages/${id}`)
+            fetch(`/api/languages/${id}`)
                 .then(response => response.json())
                 .then(language => {
                     document.getElementById('languageFormTitle').textContent = '编辑语言';
@@ -1388,7 +1388,7 @@
             };
             
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `/languages/${id}` : '/languages';
+            const url = id ? `/api/languages/${id}` : '/api/languages';
             
             fetch(url, {
                 method: method,
@@ -1413,7 +1413,7 @@
                 '删除确认',
                 '确定要删除这个语言吗？删除后不可恢复。',
                 function() {
-                    fetch(`/languages/${id}`, {
+                    fetch(`/api/languages/${id}`, {
                         method: 'DELETE'
                     })
                     .then(response => response.json())
@@ -1429,7 +1429,7 @@
         }
 
         function toggleLanguage(id, enabled) {
-            fetch(`/languages/${id}`, {
+            fetch(`/api/languages/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1455,7 +1455,7 @@
         }
 
         function editStyle(id) {
-            fetch(`/styles/${id}`)
+            fetch(`/api/styles/${id}`)
                 .then(response => response.json())
                 .then(style => {
                     document.getElementById('styleFormTitle').textContent = '编辑风格';
@@ -1476,7 +1476,7 @@
             };
             
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `/styles/${id}` : '/styles';
+            const url = id ? `/api/styles/${id}` : '/api/styles';
             
             fetch(url, {
                 method: method,
@@ -1501,7 +1501,7 @@
                 '删除确认',
                 '确定要删除这个风格吗？删除后不可恢复。',
                 function() {
-                    fetch(`/styles/${id}`, {
+                    fetch(`/api/styles/${id}`, {
                         method: 'DELETE'
                     })
                     .then(response => response.json())
@@ -1517,7 +1517,7 @@
         }
 
         function toggleStyle(id, enabled) {
-            fetch(`/styles/${id}`, {
+            fetch(`/api/styles/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1543,7 +1543,7 @@
         }
 
         function editTemplate(id) {
-            fetch(`/templates/${id}`)
+            fetch(`/api/templates/${id}`)
                 .then(response => response.json())
                 .then(template => {
                     document.getElementById('templateFormTitle').textContent = '编辑模板';
@@ -1566,7 +1566,7 @@
             };
             
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `/templates/${id}` : '/templates';
+            const url = id ? `/api/templates/${id}` : '/api/templates';
             
             fetch(url, {
                 method: method,
@@ -1591,7 +1591,7 @@
                 '删除确认',
                 '确定要删除这个模板吗？删除后不可恢复。',
                 function() {
-                    fetch(`/templates/${id}`, {
+                    fetch(`/api/templates/${id}`, {
                         method: 'DELETE'
                     })
                     .then(response => response.json())
@@ -1607,7 +1607,7 @@
         }
 
         function toggleTemplate(id, enabled) {
-            fetch(`/templates/${id}`, {
+            fetch(`/api/templates/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
