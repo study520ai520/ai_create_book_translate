@@ -688,12 +688,20 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.settings) {
+                        if (data.settings.has_translated_fragments) {
+                            showConfirm(
+                                '无法修改设置',
+                                '该书籍已有翻译完成的碎片，无法修改翻译设置。如需使用不同的设置，请先删除该书籍后重新上传。',
+                                () => {}
+                            );
+                            return;
+                        }
                         document.getElementById('targetLanguage').value = data.settings.target_language;
                         document.getElementById('translationStyle').value = data.settings.translation_style;
                         document.getElementById('promptTemplate').value = data.settings.prompt_template;
                         document.getElementById('customPrompt').value = data.settings.custom_prompt || '';
+                        translationSettingsModal.show();
                     }
-                    translationSettingsModal.show();
                 });
         }
 
@@ -908,11 +916,19 @@
                     showLog('翻译设置保存成功！', 'progress');
                     loadBooks();  // 刷新书籍列表以显示新的设置
                 } else {
-                    showLog(`设置保存失败: ${result.error}`, 'error');
+                    showConfirm(
+                        '设置保存失败',
+                        result.error || '保存失败，请重试',
+                        () => {}
+                    );
                 }
             })
             .catch(error => {
-                showLog(`设置保存出错: ${error}`, 'error');
+                showConfirm(
+                    '设置保存失败',
+                    error.toString(),
+                    () => {}
+                );
             });
         }
 

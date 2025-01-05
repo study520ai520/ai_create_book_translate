@@ -81,13 +81,22 @@ def get_translation_settings(book_id):
     """获取书籍的翻译设置"""
     try:
         book = Book.query.get_or_404(book_id)
+        
+        # 检查是否有已翻译的碎片
+        translated_count = Fragment.query.filter(
+            Fragment.book_id == book_id,
+            Fragment.translated_text != None,
+            Fragment.translated_text != ""
+        ).count()
+        
         return jsonify({
             'has_settings': bool(book.target_language and book.translation_style and book.prompt_template),
             'settings': {
                 'target_language': book.target_language,
                 'translation_style': book.translation_style,
                 'prompt_template': book.prompt_template,
-                'custom_prompt': book.custom_prompt
+                'custom_prompt': book.custom_prompt,
+                'has_translated_fragments': translated_count > 0
             }
         })
     except Exception as e:
@@ -98,9 +107,22 @@ def save_translation_settings(book_id):
     """保存书籍的翻译设置"""
     try:
         book = Book.query.get_or_404(book_id)
-        settings = request.json
+        
+        # 检查是否有已翻译的碎片
+        translated_count = Fragment.query.filter(
+            Fragment.book_id == book_id,
+            Fragment.translated_text != None,
+            Fragment.translated_text != ""
+        ).count()
+        
+        if translated_count > 0:
+            return jsonify({
+                'success': False,
+                'error': '已有翻译完成的碎片，无法修改翻译设置'
+            }), 400
         
         # 更新翻译设置
+        settings = request.json
         book.target_language = settings.get('target_language', '中文')
         book.translation_style = settings.get('translation_style', '准确、流畅')
         book.prompt_template = settings.get('prompt_template', 'standard')
