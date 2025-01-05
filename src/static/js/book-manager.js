@@ -204,31 +204,34 @@ class BookManager {
 
     // 翻译整本书
     async translateBook(bookId) {
-        if (!confirm('确定要开始翻译这本书吗？')) return;
-        
         try {
-            showLoading();
-            const response = await fetch(`/api/translate_remaining/${bookId}`, {
-                method: 'POST'
-            });
-            
-            const result = await response.json();
-            
-            if (response.status === 206) {  // Partial Content
-                // 部分翻译失败
-                showToast('部分内容翻译失败，请查看详细信息', 'warning');
-                console.error('翻译错误详情:', result.details);
-                this.startTranslationProgress(bookId, true);  // 显示错误详情
-            } else if (!response.ok) {
-                throw new Error(result.error || '翻译失败');
-            } else {
-                showToast('翻译任务已启动');
-                this.startTranslationProgress(bookId);
+            // 获取书籍信息
+            const response = await fetch(`/api/books/${bookId}`);
+            if (!response.ok) throw new Error('获取书籍信息失败');
+            const book = await response.json();
+
+            // 获取未翻译的片段
+            const fragmentsResponse = await fetch(`/api/untranslated_fragments/${bookId}`);
+            if (!fragmentsResponse.ok) throw new Error('获取未翻译片段失败');
+            const fragments = await fragmentsResponse.json();
+
+            if (fragments.length === 0) {
+                showToast('没有需要翻译的内容');
+                return;
             }
+
+            // 将所有未翻译的片段添加到队列
+            fragments.forEach(fragment => {
+                translationQueueManager.addTask(bookId, book.title, fragment.id, fragment.content);
+            });
+
+            // 显示队列和日志窗口
+            document.getElementById('translationQueue').classList.add('active');
+            document.getElementById('translationLog').classList.add('active');
+
         } catch (error) {
             console.error('翻译失败:', error);
-            showToast(error.message || '翻译失败', 'error');
-            hideLoading();
+            showToast('翻译失败: ' + error.message, 'error');
         }
     }
 
@@ -275,7 +278,6 @@ class BookManager {
                 const progress = await response.json();
                 if (progress.completed === progress.total) {
                     // 翻译完成
-                    hideLoading();
                     await this.loadBooks();
                     
                     if (hasErrors) {
@@ -302,7 +304,6 @@ class BookManager {
                 setTimeout(progressCheck, 2000);
             } catch (error) {
                 console.error('获取翻译进度失败:', error);
-                hideLoading();
             }
         };
         
