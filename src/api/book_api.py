@@ -356,7 +356,10 @@ def get_untranslated_fragments(book_id):
     """获取未翻译的片段"""
     try:
         book = Book.query.get_or_404(book_id)
-        fragments = Fragment.query.filter_by(book_id=book_id, translated_text=None).all()
+        fragments = Fragment.query.filter(
+            Fragment.book_id == book_id,
+            (Fragment.translated_text == None) | (Fragment.translated_text == "")  # noqa
+        ).all()
         return jsonify([{
             'id': f.id,
             'content': f.original_text
