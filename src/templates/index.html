@@ -35,6 +35,87 @@
             font-size: 1.5rem;
             font-weight: 600;
             color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-brand i {
+            margin-right: 0.5rem;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-btn:hover {
+            background-color: rgba(74, 144, 226, 0.1);
+        }
+
+        .settings-btn i {
+            margin: 0;
+        }
+
+        .settings-modal .nav-tabs {
+            margin-bottom: 1rem;
+        }
+
+        .settings-modal .tab-content {
+            padding: 1rem 0;
+        }
+
+        .settings-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+        }
+
+        .settings-item:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .settings-item-info {
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        .settings-item-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .settings-item-description {
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .settings-item-actions {
+            display: flex;
+            gap: 0.5rem;
         }
 
         .upload-card {
@@ -370,9 +451,15 @@
     <!-- 导航栏 -->
     <nav class="navbar">
         <div class="container">
-            <span class="navbar-brand">
-                <i class="bi bi-book"></i> 书籍翻译器
-            </span>
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-translate"></i>
+                书籍翻译器
+            </a>
+            <div class="navbar-actions">
+                <button class="settings-btn" onclick="showSettings()">
+                    <i class="bi bi-gear-fill"></i>
+                </button>
+            </div>
         </div>
     </nav>
 
@@ -482,11 +569,9 @@
                         <div class="mb-3">
                             <label class="form-label">翻译风格</label>
                             <select class="form-select" id="translationStyle" required>
-                                <option value="准确、流畅">准确、流畅</option>
-                                <option value="文学性、优美">文学性、优美</option>
-                                <option value="口语化、通俗">口语化、通俗</option>
-                                <option value="专业、严谨">专业、严谨</option>
-                                <option value="简明、直接">简明、直接</option>
+                                <option value="白话文（通俗易懂，容易理解）">白话文（通俗易懂，容易理解）</option>
+                                <option value="文学性（文字优美）">文学性（文字优美）</option>
+                                <option value="专业文（严谨严肃，专业认真）">专业文（严谨严肃，专业认真）</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -514,6 +599,176 @@
         </div>
     </div>
 
+    <!-- 添加设置管理模态框 -->
+    <div class="modal fade settings-modal" id="settingsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-gear"></i> 系统设置
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#languagesTab">
+                                目标语言管理
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#stylesTab">
+                                翻译风格管理
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#templatesTab">
+                                提示词模板管理
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <!-- 目标语言管理 -->
+                        <div class="tab-pane fade show active" id="languagesTab">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">目标语言列表</h6>
+                                <button class="btn btn-primary btn-sm" onclick="showAddLanguageModal()">
+                                    <i class="bi bi-plus"></i> 添加语言
+                                </button>
+                            </div>
+                            <div class="settings-list" id="languagesList"></div>
+                        </div>
+                        
+                        <!-- 翻译风格管理 -->
+                        <div class="tab-pane fade" id="stylesTab">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">翻译风格列表</h6>
+                                <button class="btn btn-primary btn-sm" onclick="showAddStyleModal()">
+                                    <i class="bi bi-plus"></i> 添加风格
+                                </button>
+                            </div>
+                            <div class="settings-list" id="stylesList"></div>
+                        </div>
+                        
+                        <!-- 提示词模板管理 -->
+                        <div class="tab-pane fade" id="templatesTab">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">提示词模板列表</h6>
+                                <button class="btn btn-primary btn-sm" onclick="showAddTemplateModal()">
+                                    <i class="bi bi-plus"></i> 添加模板
+                                </button>
+                            </div>
+                            <div class="settings-list" id="templatesList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加语言模态框 -->
+    <div class="modal fade" id="languageFormModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="languageFormTitle">添加语言</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="languageForm">
+                        <input type="hidden" id="languageId">
+                        <div class="mb-3">
+                            <label class="form-label">语言名称</label>
+                            <input type="text" class="form-control" id="languageName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">描述</label>
+                            <textarea class="form-control" id="languageDescription" rows="2"></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="languageEnabled" checked>
+                            <label class="form-check-label">启用</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveLanguage()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加风格模态框 -->
+    <div class="modal fade" id="styleFormModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="styleFormTitle">添加风格</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="styleForm">
+                        <input type="hidden" id="styleId">
+                        <div class="mb-3">
+                            <label class="form-label">风格名称</label>
+                            <input type="text" class="form-control" id="styleName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">描述</label>
+                            <textarea class="form-control" id="styleDescription" rows="2"></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="styleEnabled" checked>
+                            <label class="form-check-label">启用</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveStyle()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加模板模态框 -->
+    <div class="modal fade" id="templateFormModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="templateFormTitle">添加模板</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="templateForm">
+                        <input type="hidden" id="templateId">
+                        <div class="mb-3">
+                            <label class="form-label">模板名称</label>
+                            <input type="text" class="form-control" id="templateName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">描述</label>
+                            <textarea class="form-control" id="templateDescription" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">提示词模板</label>
+                            <textarea class="form-control" id="templateContent" rows="4" required></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="templateEnabled" checked>
+                            <label class="form-check-label">启用</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveTemplate()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // 全局变量
@@ -522,6 +777,12 @@
         let translationSettingsModal;
         let currentBookId;
         let currentTranslationSettings = {};  // 存储当前的翻译设置
+
+        // 设置管理相关变量
+        let settingsModal;
+        let languageFormModal;
+        let styleFormModal;
+        let templateFormModal;
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
@@ -569,6 +830,12 @@
                     handleUpload(file);
                 }
             });
+
+            // 初始化设置相关模态框
+            settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
+            languageFormModal = new bootstrap.Modal(document.getElementById('languageFormModal'));
+            styleFormModal = new bootstrap.Modal(document.getElementById('styleFormModal'));
+            templateFormModal = new bootstrap.Modal(document.getElementById('templateFormModal'));
         });
 
         // 显示/隐藏加载动画
@@ -968,6 +1235,375 @@
             .catch(error => {
                 clearInterval(progressInterval);
                 showLog(`发生错误: ${error}`, 'error');
+            });
+        }
+
+        // 显示设置管理界面
+        function showSettings() {
+            loadLanguages();
+            loadStyles();
+            loadTemplates();
+            settingsModal.show();
+        }
+
+        // 加载语言列表
+        function loadLanguages() {
+            fetch('/languages')
+                .then(response => response.json())
+                .then(languages => {
+                    const languagesList = document.getElementById('languagesList');
+                    languagesList.innerHTML = languages.map(lang => `
+                        <div class="settings-item">
+                            <div class="settings-item-info">
+                                <div class="settings-item-title">${lang.name}</div>
+                                <div class="settings-item-description">${lang.description || ''}</div>
+                            </div>
+                            <div class="settings-item-actions">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                           ${lang.is_enabled ? 'checked' : ''}
+                                           onchange="toggleLanguage(${lang.id}, this.checked)">
+                                </div>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editLanguage(${lang.id})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteLanguage(${lang.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                });
+        }
+
+        // 加载风格列表
+        function loadStyles() {
+            fetch('/styles')
+                .then(response => response.json())
+                .then(styles => {
+                    const stylesList = document.getElementById('stylesList');
+                    stylesList.innerHTML = styles.map(style => `
+                        <div class="settings-item">
+                            <div class="settings-item-info">
+                                <div class="settings-item-title">${style.name}</div>
+                                <div class="settings-item-description">${style.description || ''}</div>
+                            </div>
+                            <div class="settings-item-actions">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                           ${style.is_enabled ? 'checked' : ''}
+                                           onchange="toggleStyle(${style.id}, this.checked)">
+                                </div>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editStyle(${style.id})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteStyle(${style.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                });
+        }
+
+        // 加载模板列表
+        function loadTemplates() {
+            fetch('/templates')
+                .then(response => response.json())
+                .then(templates => {
+                    const templatesList = document.getElementById('templatesList');
+                    templatesList.innerHTML = templates.map(template => `
+                        <div class="settings-item">
+                            <div class="settings-item-info">
+                                <div class="settings-item-title">
+                                    ${template.name}
+                                    ${template.is_system ? '<span class="badge bg-info">系统</span>' : ''}
+                                </div>
+                                <div class="settings-item-description">${template.description || ''}</div>
+                            </div>
+                            <div class="settings-item-actions">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                           ${template.is_enabled ? 'checked' : ''}
+                                           onchange="toggleTemplate(${template.id}, this.checked)">
+                                </div>
+                                ${template.is_system ? '' : `
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editTemplate(${template.id})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTemplate(${template.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    `).join('');
+                });
+        }
+
+        // 语言管理相关函数
+        function showAddLanguageModal() {
+            document.getElementById('languageFormTitle').textContent = '添加语言';
+            document.getElementById('languageId').value = '';
+            document.getElementById('languageForm').reset();
+            languageFormModal.show();
+        }
+
+        function editLanguage(id) {
+            fetch(`/languages/${id}`)
+                .then(response => response.json())
+                .then(language => {
+                    document.getElementById('languageFormTitle').textContent = '编辑语言';
+                    document.getElementById('languageId').value = language.id;
+                    document.getElementById('languageName').value = language.name;
+                    document.getElementById('languageDescription').value = language.description || '';
+                    document.getElementById('languageEnabled').checked = language.is_enabled;
+                    languageFormModal.show();
+                });
+        }
+
+        function saveLanguage() {
+            const id = document.getElementById('languageId').value;
+            const data = {
+                name: document.getElementById('languageName').value,
+                description: document.getElementById('languageDescription').value,
+                is_enabled: document.getElementById('languageEnabled').checked
+            };
+            
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/languages/${id}` : '/languages';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    languageFormModal.hide();
+                    loadLanguages();
+                } else {
+                    showConfirm('保存失败', result.error || '操作失败，请重试', () => {});
+                }
+            });
+        }
+
+        function deleteLanguage(id) {
+            showConfirm(
+                '删除确认',
+                '确定要删除这个语言吗？删除后不可恢复。',
+                function() {
+                    fetch(`/languages/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            loadLanguages();
+                        } else {
+                            showConfirm('删除失败', result.error || '操作失败，请重试', () => {});
+                        }
+                    });
+                }
+            );
+        }
+
+        function toggleLanguage(id, enabled) {
+            fetch(`/languages/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ is_enabled: enabled })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) {
+                    showConfirm('操作失败', result.error || '更新失败，请重试', () => {
+                        loadLanguages();  // 刷新列表以恢复原状态
+                    });
+                }
+            });
+        }
+
+        // 风格管理相关函数
+        function showAddStyleModal() {
+            document.getElementById('styleFormTitle').textContent = '添加风格';
+            document.getElementById('styleId').value = '';
+            document.getElementById('styleForm').reset();
+            styleFormModal.show();
+        }
+
+        function editStyle(id) {
+            fetch(`/styles/${id}`)
+                .then(response => response.json())
+                .then(style => {
+                    document.getElementById('styleFormTitle').textContent = '编辑风格';
+                    document.getElementById('styleId').value = style.id;
+                    document.getElementById('styleName').value = style.name;
+                    document.getElementById('styleDescription').value = style.description || '';
+                    document.getElementById('styleEnabled').checked = style.is_enabled;
+                    styleFormModal.show();
+                });
+        }
+
+        function saveStyle() {
+            const id = document.getElementById('styleId').value;
+            const data = {
+                name: document.getElementById('styleName').value,
+                description: document.getElementById('styleDescription').value,
+                is_enabled: document.getElementById('styleEnabled').checked
+            };
+            
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/styles/${id}` : '/styles';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    styleFormModal.hide();
+                    loadStyles();
+                } else {
+                    showConfirm('保存失败', result.error || '操作失败，请重试', () => {});
+                }
+            });
+        }
+
+        function deleteStyle(id) {
+            showConfirm(
+                '删除确认',
+                '确定要删除这个风格吗？删除后不可恢复。',
+                function() {
+                    fetch(`/styles/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            loadStyles();
+                        } else {
+                            showConfirm('删除失败', result.error || '操作失败，请重试', () => {});
+                        }
+                    });
+                }
+            );
+        }
+
+        function toggleStyle(id, enabled) {
+            fetch(`/styles/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ is_enabled: enabled })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) {
+                    showConfirm('操作失败', result.error || '更新失败，请重试', () => {
+                        loadStyles();  // 刷新列表以恢复原状态
+                    });
+                }
+            });
+        }
+
+        // 模板管理相关函数
+        function showAddTemplateModal() {
+            document.getElementById('templateFormTitle').textContent = '添加模板';
+            document.getElementById('templateId').value = '';
+            document.getElementById('templateForm').reset();
+            templateFormModal.show();
+        }
+
+        function editTemplate(id) {
+            fetch(`/templates/${id}`)
+                .then(response => response.json())
+                .then(template => {
+                    document.getElementById('templateFormTitle').textContent = '编辑模板';
+                    document.getElementById('templateId').value = template.id;
+                    document.getElementById('templateName').value = template.name;
+                    document.getElementById('templateDescription').value = template.description || '';
+                    document.getElementById('templateContent').value = template.template;
+                    document.getElementById('templateEnabled').checked = template.is_enabled;
+                    templateFormModal.show();
+                });
+        }
+
+        function saveTemplate() {
+            const id = document.getElementById('templateId').value;
+            const data = {
+                name: document.getElementById('templateName').value,
+                description: document.getElementById('templateDescription').value,
+                template: document.getElementById('templateContent').value,
+                is_enabled: document.getElementById('templateEnabled').checked
+            };
+            
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/templates/${id}` : '/templates';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    templateFormModal.hide();
+                    loadTemplates();
+                } else {
+                    showConfirm('保存失败', result.error || '操作失败，请重试', () => {});
+                }
+            });
+        }
+
+        function deleteTemplate(id) {
+            showConfirm(
+                '删除确认',
+                '确定要删除这个模板吗？删除后不可恢复。',
+                function() {
+                    fetch(`/templates/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            loadTemplates();
+                        } else {
+                            showConfirm('删除失败', result.error || '操作失败，请重试', () => {});
+                        }
+                    });
+                }
+            );
+        }
+
+        function toggleTemplate(id, enabled) {
+            fetch(`/templates/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ is_enabled: enabled })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) {
+                    showConfirm('操作失败', result.error || '更新失败，请重试', () => {
+                        loadTemplates();  // 刷新列表以恢复原状态
+                    });
+                }
             });
         }
     </script>
