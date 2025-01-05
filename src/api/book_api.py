@@ -22,6 +22,15 @@ def get_books():
     books = Book.query.all()
     return jsonify([book.to_dict() for book in books])
 
+@book_api.route('/books/<int:book_id>', methods=['GET'])
+def get_book(book_id):
+    """获取单本书籍信息"""
+    try:
+        book = Book.query.get_or_404(book_id)
+        return jsonify(book.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 404
+
 @book_api.route('/upload', methods=['POST'])
 def upload_file():
     """上传文件"""
@@ -347,10 +356,10 @@ def get_untranslated_fragments(book_id):
     """获取未翻译的片段"""
     try:
         book = Book.query.get_or_404(book_id)
-        fragments = Fragment.query.filter_by(book_id=book_id, translated_content=None).all()
+        fragments = Fragment.query.filter_by(book_id=book_id, translated_text=None).all()
         return jsonify([{
             'id': f.id,
-            'content': f.content
+            'content': f.original_text
         } for f in fragments])
     except Exception as e:
         return jsonify({'error': str(e)}), 400
