@@ -9,12 +9,13 @@ settings_api = Blueprint('settings_api', __name__)
 def get_languages():
     """获取所有翻译语言"""
     languages = TranslationLanguage.query.all()
-    return jsonify([{
-        'id': lang.id,
-        'name': lang.name,
-        'description': lang.description,
-        'is_enabled': lang.is_enabled
-    } for lang in languages])
+    return jsonify([lang.to_dict() for lang in languages])
+
+@settings_api.route('/languages/<int:id>', methods=['GET'])
+def get_language(id):
+    """获取单个翻译语言"""
+    language = TranslationLanguage.query.get_or_404(id)
+    return jsonify(language.to_dict())
 
 @settings_api.route('/languages', methods=['POST'])
 def add_language():
@@ -27,12 +28,7 @@ def add_language():
     )
     db.session.add(language)
     db.session.commit()
-    return jsonify({
-        'id': language.id,
-        'name': language.name,
-        'description': language.description,
-        'is_enabled': language.is_enabled
-    }), 201
+    return jsonify(language.to_dict()), 201
 
 @settings_api.route('/languages/<int:id>', methods=['PUT'])
 def update_language(id):
@@ -43,12 +39,7 @@ def update_language(id):
     language.description = data.get('description', language.description)
     language.is_enabled = data.get('is_enabled', language.is_enabled)
     db.session.commit()
-    return jsonify({
-        'id': language.id,
-        'name': language.name,
-        'description': language.description,
-        'is_enabled': language.is_enabled
-    })
+    return jsonify(language.to_dict())
 
 @settings_api.route('/languages/<int:id>', methods=['DELETE'])
 def delete_language(id):
@@ -63,12 +54,13 @@ def delete_language(id):
 def get_styles():
     """获取所有翻译风格"""
     styles = TranslationStyle.query.all()
-    return jsonify([{
-        'id': style.id,
-        'name': style.name,
-        'description': style.description,
-        'is_enabled': style.is_enabled
-    } for style in styles])
+    return jsonify([style.to_dict() for style in styles])
+
+@settings_api.route('/styles/<int:id>', methods=['GET'])
+def get_style(id):
+    """获取单个翻译风格"""
+    style = TranslationStyle.query.get_or_404(id)
+    return jsonify(style.to_dict())
 
 @settings_api.route('/styles', methods=['POST'])
 def add_style():
@@ -81,12 +73,7 @@ def add_style():
     )
     db.session.add(style)
     db.session.commit()
-    return jsonify({
-        'id': style.id,
-        'name': style.name,
-        'description': style.description,
-        'is_enabled': style.is_enabled
-    }), 201
+    return jsonify(style.to_dict()), 201
 
 @settings_api.route('/styles/<int:id>', methods=['PUT'])
 def update_style(id):
@@ -97,12 +84,7 @@ def update_style(id):
     style.description = data.get('description', style.description)
     style.is_enabled = data.get('is_enabled', style.is_enabled)
     db.session.commit()
-    return jsonify({
-        'id': style.id,
-        'name': style.name,
-        'description': style.description,
-        'is_enabled': style.is_enabled
-    })
+    return jsonify(style.to_dict())
 
 @settings_api.route('/styles/<int:id>', methods=['DELETE'])
 def delete_style(id):
@@ -117,13 +99,13 @@ def delete_style(id):
 def get_templates():
     """获取所有提示词模板"""
     templates = PromptTemplate.query.all()
-    return jsonify([{
-        'id': template.id,
-        'name': template.name,
-        'description': template.description,
-        'template': template.template,
-        'is_system': template.is_system
-    } for template in templates])
+    return jsonify([template.to_dict() for template in templates])
+
+@settings_api.route('/templates/<int:id>', methods=['GET'])
+def get_template(id):
+    """获取单个提示词模板"""
+    template = PromptTemplate.query.get_or_404(id)
+    return jsonify(template.to_dict())
 
 @settings_api.route('/templates', methods=['POST'])
 def add_template():
@@ -133,17 +115,12 @@ def add_template():
         name=data['name'],
         description=data.get('description', ''),
         template=data['template'],
-        is_system=data.get('is_system', False)
+        is_system=data.get('is_system', False),
+        is_enabled=data.get('is_enabled', True)
     )
     db.session.add(template)
     db.session.commit()
-    return jsonify({
-        'id': template.id,
-        'name': template.name,
-        'description': template.description,
-        'template': template.template,
-        'is_system': template.is_system
-    }), 201
+    return jsonify(template.to_dict()), 201
 
 @settings_api.route('/templates/<int:id>', methods=['PUT'])
 def update_template(id):
@@ -158,15 +135,10 @@ def update_template(id):
         template.name = data.get('name', template.name)
         template.description = data.get('description', template.description)
         template.template = data.get('template', template.template)
+        template.is_enabled = data.get('is_enabled', template.is_enabled)
     
     db.session.commit()
-    return jsonify({
-        'id': template.id,
-        'name': template.name,
-        'description': template.description,
-        'template': template.template,
-        'is_system': template.is_system
-    })
+    return jsonify(template.to_dict())
 
 @settings_api.route('/templates/<int:id>', methods=['DELETE'])
 def delete_template(id):

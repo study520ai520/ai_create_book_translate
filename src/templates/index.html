@@ -923,242 +923,6 @@
             settingsModal.show();
         }
 
-        // 语言管理相关函数
-        function showAddLanguageModal() {
-            document.getElementById('languageModalTitle').textContent = '添加语言';
-            document.getElementById('languageForm').reset();
-            document.getElementById('languageId').value = '';
-            new bootstrap.Modal(document.getElementById('languageModal')).show();
-        }
-
-        function editLanguage(id) {
-            const language = languages.find(l => l.id === id);
-            if (language) {
-                document.getElementById('languageModalTitle').textContent = '编辑语言';
-                document.getElementById('languageId').value = language.id;
-                document.getElementById('languageName').value = language.name;
-                document.getElementById('languageDescription').value = language.description || '';
-                document.getElementById('languageEnabled').checked = language.is_enabled;
-                new bootstrap.Modal(document.getElementById('languageModal')).show();
-            }
-        }
-
-        async function saveLanguage() {
-            const id = document.getElementById('languageId').value;
-            const data = {
-                name: document.getElementById('languageName').value,
-                description: document.getElementById('languageDescription').value,
-                is_enabled: document.getElementById('languageEnabled').checked
-            };
-            
-            try {
-                const url = id ? `/api/languages/${id}` : '/api/languages';
-                const method = id ? 'PUT' : 'POST';
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();
-                    await loadLanguages();
-                    showToast('保存成功');
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.error || '保存失败');
-                }
-            } catch (error) {
-                console.error('保存语言失败:', error);
-                showToast(error.message || '保存失败', 'error');
-            }
-        }
-
-        async function deleteLanguage(id) {
-            if (confirm('确定要删除这个语言吗？')) {
-                try {
-                    const response = await fetch(`/api/languages/${id}`, {
-                        method: 'DELETE'
-                    });
-                    
-                    if (response.ok) {
-                        await loadLanguages();
-                        showToast('删除成功');
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.error || '删除失败');
-                    }
-                } catch (error) {
-                    console.error('删除语言失败:', error);
-                    showToast(error.message || '删除失败', 'error');
-                }
-            }
-        }
-
-        // 风格管理相关函数
-        function showAddStyleModal() {
-            document.getElementById('styleModalTitle').textContent = '添加风格';
-            document.getElementById('styleForm').reset();
-            document.getElementById('styleId').value = '';
-            new bootstrap.Modal(document.getElementById('styleModal')).show();
-        }
-
-        function editStyle(id) {
-            const style = styles.find(s => s.id === id);
-            if (style) {
-                document.getElementById('styleModalTitle').textContent = '编辑风格';
-                document.getElementById('styleId').value = style.id;
-                document.getElementById('styleName').value = style.name;
-                document.getElementById('styleDescription').value = style.description || '';
-                document.getElementById('styleEnabled').checked = style.is_enabled;
-                new bootstrap.Modal(document.getElementById('styleModal')).show();
-            }
-        }
-
-        async function saveStyle() {
-            const id = document.getElementById('styleId').value;
-            const data = {
-                name: document.getElementById('styleName').value,
-                description: document.getElementById('styleDescription').value,
-                is_enabled: document.getElementById('styleEnabled').checked
-            };
-            
-            try {
-                const url = id ? `/api/styles/${id}` : '/api/styles';
-                const method = id ? 'PUT' : 'POST';
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('styleModal')).hide();
-                    await loadStyles();
-                    showToast('保存成功');
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.error || '保存失败');
-                }
-            } catch (error) {
-                console.error('保存风格失败:', error);
-                showToast(error.message || '保存失败', 'error');
-            }
-        }
-
-        async function deleteStyle(id) {
-            if (confirm('确定要删除这个风格吗？')) {
-                try {
-                    const response = await fetch(`/api/styles/${id}`, {
-                        method: 'DELETE'
-                    });
-                    
-                    if (response.ok) {
-                        await loadStyles();
-                        showToast('删除成功');
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.error || '删除失败');
-                    }
-                } catch (error) {
-                    console.error('删除风格失败:', error);
-                    showToast(error.message || '删除失败', 'error');
-                }
-            }
-        }
-
-        // 模板管理相关函数
-        function showAddTemplateModal() {
-            document.getElementById('templateModalTitle').textContent = '添加模板';
-            document.getElementById('templateForm').reset();
-            document.getElementById('templateId').value = '';
-            document.getElementById('templateName').disabled = false;
-            document.getElementById('templateDescription').disabled = false;
-            document.getElementById('templateContent').disabled = false;
-            document.querySelector('#templateModal .modal-footer .btn-primary').style.display = 'block';
-            new bootstrap.Modal(document.getElementById('templateModal')).show();
-        }
-
-        function editTemplate(id) {
-            const template = templates.find(t => t.id === id);
-            if (template) {
-                document.getElementById('templateModalTitle').textContent = template.is_system ? '查看模板' : '编辑模板';
-                document.getElementById('templateId').value = template.id;
-                document.getElementById('templateName').value = template.name;
-                document.getElementById('templateDescription').value = template.description || '';
-                document.getElementById('templateContent').value = template.template;
-                document.getElementById('templateEnabled').checked = template.is_enabled;
-                
-                // 如果是系统模板，禁用编辑
-                const isSystem = template.is_system;
-                document.getElementById('templateName').disabled = isSystem;
-                document.getElementById('templateDescription').disabled = isSystem;
-                document.getElementById('templateContent').disabled = isSystem;
-                document.querySelector('#templateModal .modal-footer .btn-primary').style.display = isSystem ? 'none' : 'block';
-                
-                new bootstrap.Modal(document.getElementById('templateModal')).show();
-            }
-        }
-
-        async function saveTemplate() {
-            const id = document.getElementById('templateId').value;
-            const data = {
-                name: document.getElementById('templateName').value,
-                description: document.getElementById('templateDescription').value,
-                template: document.getElementById('templateContent').value,
-                is_enabled: document.getElementById('templateEnabled').checked
-            };
-            
-            try {
-                const url = id ? `/api/templates/${id}` : '/api/templates';
-                const method = id ? 'PUT' : 'POST';
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (response.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
-                    await loadTemplates();
-                    showToast('保存成功');
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.error || '保存失败');
-                }
-            } catch (error) {
-                console.error('保存模板失败:', error);
-                showToast(error.message || '保存失败', 'error');
-            }
-        }
-
-        async function deleteTemplate(id) {
-            if (confirm('确定要删除这个模板吗？')) {
-                try {
-                    const response = await fetch(`/api/templates/${id}`, {
-                        method: 'DELETE'
-                    });
-                    
-                    if (response.ok) {
-                        await loadTemplates();
-                        showToast('删除成功');
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.error || '删除失败');
-                    }
-                } catch (error) {
-                    console.error('删除模板失败:', error);
-                    showToast(error.message || '删除失败', 'error');
-                }
-            }
-        }
-
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             // 初始化模态框
@@ -1187,9 +951,257 @@
                     }
                 });
             });
+
+            // 加载初始数据
+            loadBooks();
         });
 
-        // ... 其他代码保持不变 ...
+        // 语言管理相关函数
+        async function showAddLanguageModal() {
+            document.getElementById('languageModalTitle').textContent = '添加语言';
+            document.getElementById('languageForm').reset();
+            document.getElementById('languageId').value = '';
+            new bootstrap.Modal(document.getElementById('languageModal')).show();
+        }
+
+        async function editLanguage(id) {
+            try {
+                const response = await fetch(`/api/languages/${id}`);
+                if (!response.ok) throw new Error('获取语言信息失败');
+                const language = await response.json();
+                
+                document.getElementById('languageModalTitle').textContent = '编辑语言';
+                document.getElementById('languageId').value = language.id;
+                document.getElementById('languageName').value = language.name;
+                document.getElementById('languageDescription').value = language.description || '';
+                document.getElementById('languageEnabled').checked = language.is_enabled;
+                
+                new bootstrap.Modal(document.getElementById('languageModal')).show();
+            } catch (error) {
+                console.error('编辑语言失败:', error);
+                showToast('编辑语言失败', 'error');
+            }
+        }
+
+        async function saveLanguage() {
+            const id = document.getElementById('languageId').value;
+            const data = {
+                name: document.getElementById('languageName').value,
+                description: document.getElementById('languageDescription').value,
+                is_enabled: document.getElementById('languageEnabled').checked
+            };
+            
+            try {
+                const url = id ? `/api/languages/${id}` : '/api/languages';
+                const method = id ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) throw new Error('保存语言失败');
+                
+                bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();
+                await loadLanguages();
+                showToast('保存成功');
+            } catch (error) {
+                console.error('保存语言失败:', error);
+                showToast('保存语言失败', 'error');
+            }
+        }
+
+        async function deleteLanguage(id) {
+            if (confirm('确定要删除这个语言吗？')) {
+                try {
+                    const response = await fetch(`/api/languages/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) throw new Error('删除语言失败');
+                    
+                    await loadLanguages();
+                    showToast('删除成功');
+                } catch (error) {
+                    console.error('删除语言失败:', error);
+                    showToast('删除语言失败', 'error');
+                }
+            }
+        }
+
+        // 风格管理相关函数
+        async function showAddStyleModal() {
+            document.getElementById('styleModalTitle').textContent = '添加风格';
+            document.getElementById('styleForm').reset();
+            document.getElementById('styleId').value = '';
+            new bootstrap.Modal(document.getElementById('styleModal')).show();
+        }
+
+        async function editStyle(id) {
+            try {
+                const response = await fetch(`/api/styles/${id}`);
+                if (!response.ok) throw new Error('获取风格信息失败');
+                const style = await response.json();
+                
+                document.getElementById('styleModalTitle').textContent = '编辑风格';
+                document.getElementById('styleId').value = style.id;
+                document.getElementById('styleName').value = style.name;
+                document.getElementById('styleDescription').value = style.description || '';
+                document.getElementById('styleEnabled').checked = style.is_enabled;
+                
+                new bootstrap.Modal(document.getElementById('styleModal')).show();
+            } catch (error) {
+                console.error('编辑风格失败:', error);
+                showToast('编辑风格失败', 'error');
+            }
+        }
+
+        async function saveStyle() {
+            const id = document.getElementById('styleId').value;
+            const data = {
+                name: document.getElementById('styleName').value,
+                description: document.getElementById('styleDescription').value,
+                is_enabled: document.getElementById('styleEnabled').checked
+            };
+            
+            try {
+                const url = id ? `/api/styles/${id}` : '/api/styles';
+                const method = id ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) throw new Error('保存风格失败');
+                
+                bootstrap.Modal.getInstance(document.getElementById('styleModal')).hide();
+                await loadStyles();
+                showToast('保存成功');
+            } catch (error) {
+                console.error('保存风格失败:', error);
+                showToast('保存风格失败', 'error');
+            }
+        }
+
+        async function deleteStyle(id) {
+            if (confirm('确定要删除这个风格吗？')) {
+                try {
+                    const response = await fetch(`/api/styles/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) throw new Error('删除风格失败');
+                    
+                    await loadStyles();
+                    showToast('删除成功');
+                } catch (error) {
+                    console.error('删除风格失败:', error);
+                    showToast('删除风格失败', 'error');
+                }
+            }
+        }
+
+        // 模板管理相关函数
+        async function showAddTemplateModal() {
+            document.getElementById('templateModalTitle').textContent = '添加模板';
+            document.getElementById('templateForm').reset();
+            document.getElementById('templateId').value = '';
+            document.getElementById('templateName').disabled = false;
+            document.getElementById('templateDescription').disabled = false;
+            document.getElementById('templateContent').disabled = false;
+            document.querySelector('#templateModal .modal-footer .btn-primary').style.display = 'block';
+            new bootstrap.Modal(document.getElementById('templateModal')).show();
+        }
+
+        async function editTemplate(id) {
+            try {
+                const response = await fetch(`/api/templates/${id}`);
+                if (!response.ok) throw new Error('获取模板信息失败');
+                const template = await response.json();
+                
+                document.getElementById('templateModalTitle').textContent = template.is_system ? '查看模板' : '编辑模板';
+                document.getElementById('templateId').value = template.id;
+                document.getElementById('templateName').value = template.name;
+                document.getElementById('templateDescription').value = template.description || '';
+                document.getElementById('templateContent').value = template.template;
+                document.getElementById('templateEnabled').checked = template.is_enabled;
+                
+                // 如果是系统模板，禁用编辑
+                const isSystem = template.is_system;
+                document.getElementById('templateName').disabled = isSystem;
+                document.getElementById('templateDescription').disabled = isSystem;
+                document.getElementById('templateContent').disabled = isSystem;
+                document.querySelector('#templateModal .modal-footer .btn-primary').style.display = isSystem ? 'none' : 'block';
+                
+                new bootstrap.Modal(document.getElementById('templateModal')).show();
+            } catch (error) {
+                console.error('编辑模板失败:', error);
+                showToast('编辑模板失败', 'error');
+            }
+        }
+
+        async function saveTemplate() {
+            const id = document.getElementById('templateId').value;
+            const data = {
+                name: document.getElementById('templateName').value,
+                description: document.getElementById('templateDescription').value,
+                template: document.getElementById('templateContent').value,
+                is_enabled: document.getElementById('templateEnabled').checked
+            };
+            
+            try {
+                const url = id ? `/api/templates/${id}` : '/api/templates';
+                const method = id ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) throw new Error('保存模板失败');
+                
+                bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
+                await loadTemplates();
+                showToast('保存成功');
+            } catch (error) {
+                console.error('保存模板失败:', error);
+                showToast('保存模板失败', 'error');
+            }
+        }
+
+        async function deleteTemplate(id) {
+            if (confirm('确定要删除这个模板吗？')) {
+                try {
+                    const response = await fetch(`/api/templates/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || '删除模板失败');
+                    }
+                    
+                    await loadTemplates();
+                    showToast('删除成功');
+                } catch (error) {
+                    console.error('删除模板失败:', error);
+                    showToast(error.message || '删除模板失败', 'error');
+                }
+            }
+        }
+
+        // 通用提示函数
+        function showToast(message, type = 'success') {
+            // 这里可以实现一个简单的提示框
+            alert(message);
+        }
     </script>
 </body>
 </html> 
