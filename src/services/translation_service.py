@@ -28,6 +28,9 @@ class TranslationService:
     def __init__(self):
         """初始化OpenAI配置"""
         openai.api_key = Config.OPENAI_API_KEY
+        openai.api_base = Config.OPENAI_API_BASE
+        openai.api_type = Config.OPENAI_API_TYPE
+        openai.api_version = Config.OPENAI_API_VERSION
         self.model = Config.OPENAI_MODEL
 
     def translate(self, text, target_lang=None, style=None, custom_prompt=None):

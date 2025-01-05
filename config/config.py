@@ -27,6 +27,9 @@ class Config:
     # OpenAI配置
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
     OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
+    OPENAI_API_BASE = os.getenv('OPENAI_API_BASE', 'https://api.openai.com/v1')
+    OPENAI_API_TYPE = os.getenv('OPENAI_API_TYPE', 'open_ai')  # 可以是 'azure' 或 'open_ai'
+    OPENAI_API_VERSION = os.getenv('OPENAI_API_VERSION', '2023-05-15')  # Azure OpenAI 需要
 
 class DevelopmentConfig(Config):
     DEBUG = True
