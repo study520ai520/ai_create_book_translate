@@ -58,11 +58,8 @@ python run.py
 │   ├── services/      # 业务逻辑
 │   │   ├── document_service.py
 │   │   └── translation_service.py
-│   ├── static/        # 静态文件
-│   ├── templates/     # HTML模板
-│   │   └── index.html
-│   └── utils/         # 工具函数
-├── tests/             # 测试文件
+│   └── templates/     # HTML模板
+│       └── index.html
 ├── uploads/           # 上传文件存储
 ├── requirements.txt   # 项目依赖
 └── run.py            # 应用入口
