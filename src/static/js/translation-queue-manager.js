@@ -107,7 +107,7 @@ class TranslationQueueManager {
             this.updateQueueDisplay();
 
             // 调用翻译API
-            const response = await fetch(`/api/book/${task.bookId}/translate_fragment/${task.fragmentId}`, {
+            const response = await fetch(`/api/translate/${task.fragmentId}`, {
                 method: 'POST'
             });
 
