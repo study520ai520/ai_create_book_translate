@@ -5,7 +5,7 @@ class Fragment(db.Model):
     __tablename__ = 'fragments'
 
     id = db.Column(db.Integer, primary_key=True)
-    book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id', ondelete='CASCADE'), nullable=False)
     fragment_number = db.Column(db.Integer, nullable=False)
     original_text = db.Column(db.Text, nullable=False)
     translated_text = db.Column(db.Text)

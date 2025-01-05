@@ -8,15 +8,15 @@ class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     total_fragments = db.Column(db.Integer, nullable=False)
-    fragments = db.relationship('Fragment', backref='book', lazy=True)
+    fragments = db.relationship('Fragment', backref='book', lazy=True, cascade='all, delete-orphan')
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), 
                           onupdate=db.func.current_timestamp())
     
     # 切片配置
-    max_tokens = db.Column(db.Integer, default=Config.DEFAULT_MAX_TOKENS)
-    must_end_with_period = db.Column(db.Boolean, default=Config.MUST_END_WITH_PERIOD)
-    split_by_sentence = db.Column(db.Boolean, default=Config.SPLIT_BY_SENTENCE)
+    max_tokens = db.Column(db.Integer, default=Config.DEFAULT_MAX_TOKENS, nullable=False)
+    must_end_with_period = db.Column(db.Boolean, default=Config.MUST_END_WITH_PERIOD, nullable=False)
+    split_by_sentence = db.Column(db.Boolean, default=Config.SPLIT_BY_SENTENCE, nullable=False)
 
     def get_progress(self):
         """计算翻译进度"""
