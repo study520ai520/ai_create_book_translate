@@ -801,579 +801,126 @@
 
         // 设置管理相关变量
         let settingsModal;
-        let languageFormModal;
-        let styleFormModal;
-        let templateFormModal;
+        let languages = [];  // 存储语言列表
+        let styles = [];     // 存储风格列表
+        let templates = [];  // 存储模板列表
 
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            fragmentModal = new bootstrap.Modal(document.getElementById('fragmentModal'));
-            confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
-            translationSettingsModal = new bootstrap.Modal(document.getElementById('translationSettingsModal'));
-            loadBooks();
-            
-            // 绑定翻译设置保存按钮事件
-            document.getElementById('saveTranslationSettings').addEventListener('click', function() {
-                const settings = {
-                    target_language: document.getElementById('targetLanguage').value,
-                    translation_style: document.getElementById('translationStyle').value,
-                    prompt_template: document.getElementById('promptTemplate').value,
-                    custom_prompt: document.getElementById('customPrompt').value.trim()
-                };
-                
-                // 保存设置并开始翻译
-                saveTranslationSettings(currentBookId, settings);
-            });
-            
-            // 处理文件拖放
-            const uploadZone = document.querySelector('.upload-zone');
-            
-            uploadZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadZone.style.borderColor = 'var(--primary-color)';
-                uploadZone.style.backgroundColor = 'rgba(74, 144, 226, 0.05)';
-            });
-            
-            uploadZone.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                uploadZone.style.borderColor = '#ddd';
-                uploadZone.style.backgroundColor = 'transparent';
-            });
-            
-            uploadZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadZone.style.borderColor = '#ddd';
-                uploadZone.style.backgroundColor = 'transparent';
-                
-                const file = e.dataTransfer.files[0];
-                if (file) {
-                    document.getElementById('bookFile').files = e.dataTransfer.files;
-                    handleUpload(file);
-                }
-            });
-
-            // 初始化设置相关模态框
-            settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
-            languageFormModal = new bootstrap.Modal(document.getElementById('languageModal'));
-            styleFormModal = new bootstrap.Modal(document.getElementById('styleModal'));
-            templateFormModal = new bootstrap.Modal(document.getElementById('templateModal'));
-        });
-
-        // 显示/隐藏加载动画
-        function toggleLoading(show) {
-            document.getElementById('loading').classList.toggle('d-none', !show);
+        // 初始化设置管理
+        function initSettings() {
+            loadLanguages();
+            loadStyles();
+            loadTemplates();
         }
 
-        // 处理文件上传
-        function handleUpload(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            toggleLoading(true);
-            fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    loadBooks();
-                    document.getElementById('bookFile').value = '';
-                }
-            })
-            .finally(() => toggleLoading(false));
-        }
-
-        // 监听文件选择
-        document.getElementById('bookFile').addEventListener('change', function(e) {
-            if (this.files[0]) {
-                handleUpload(this.files[0]);
+        // 加载语言列表
+        async function loadLanguages() {
+            try {
+                const response = await fetch('/api/languages');
+                languages = await response.json();  // 保存到全局变量
+                renderLanguagesTable();
+            } catch (error) {
+                console.error('加载语言列表失败:', error);
+                showToast('加载语言列表失败', 'error');
             }
-        });
-
-        // 加载书籍列表
-        function loadBooks() {
-            fetch('/api/books')
-                .then(response => response.json())
-                .then(books => {
-                    const bookList = document.getElementById('bookList');
-                    bookList.innerHTML = books.map(book => `
-                        <div class="book-card">
-                            <div class="book-info">
-                                <h5 class="book-title">
-                                    <i class="bi bi-book"></i>
-                                    ${book.name}
-                                </h5>
-                                <div class="translation-settings">
-                                    <small class="text-muted">
-                                        <i class="bi bi-gear"></i> 翻译设置：
-                                        ${book.has_translation_settings ? `
-                                            <span class="badge bg-info">${book.target_language}</span>
-                                            <span class="badge bg-success">${book.translation_style}</span>
-                                            <span class="badge bg-primary">${getTemplateLabel(book.prompt_template)}</span>
-                                        ` : '<span class="badge bg-warning">未设置</span>'}
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="progress-section">
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: ${book.progress}%" 
-                                         aria-valuenow="${book.progress}" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100">
-                                    </div>
-                                </div>
-                                <div class="text-center">
-                                    <small class="text-muted">翻译进度：${book.progress}%</small>
-                                </div>
-                            </div>
-                            <div class="action-buttons">
-                                <button class="btn btn-primary" 
-                                        onclick="showFragments(${book.id})">
-                                    <i class="bi bi-eye me-1"></i>查看详情
-                                </button>
-                                <button class="btn btn-success" 
-                                        onclick="translateRemaining(${book.id})">
-                                    <i class="bi bi-translate me-1"></i>一键翻译
-                                </button>
-                                <button class="btn btn-warning" 
-                                        onclick="showTranslationSettings(${book.id})">
-                                    <i class="bi bi-gear me-1"></i>翻译设置
-                                </button>
-                                <button class="btn btn-info" 
-                                        onclick="exportBook(${book.id})">
-                                    <i class="bi bi-file-earmark-word me-1"></i>导出文档
-                                </button>
-                                <button class="btn btn-danger" 
-                                        onclick="deleteBook(${book.id})">
-                                    <i class="bi bi-trash me-1"></i>删除
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
-                });
         }
 
-        // 获取模板标签
-        function getTemplateLabel(template) {
-            const labels = {
-                'standard': '标准模板',
-                'literary': '文学翻译',
-                'technical': '技术文档',
-                'casual': '日常对话',
-                'academic': '学术论文'
-            };
-            return labels[template] || template;
+        // 加载风格列表
+        async function loadStyles() {
+            try {
+                const response = await fetch('/api/styles');
+                styles = await response.json();  // 保存到全局变量
+                renderStylesTable();
+            } catch (error) {
+                console.error('加载风格列表失败:', error);
+                showToast('加载风格列表失败', 'error');
+            }
         }
 
-        // 显示翻译设置
-        function showTranslationSettings(bookId) {
-            currentBookId = bookId;
-            
-            // 加载所有可用选项
-            Promise.all([
-                fetch('/api/languages').then(response => response.json()),
-                fetch('/api/styles').then(response => response.json()),
-                fetch('/api/templates').then(response => response.json())
-            ]).then(([languages, styles, templates]) => {
-                // 填充语言选项
-                const targetLanguageSelect = document.getElementById('targetLanguage');
-                targetLanguageSelect.innerHTML = languages
-                    .filter(lang => lang.is_enabled)
-                    .map(lang => `<option value="${lang.name}">${lang.name} - ${lang.description}</option>`)
-                    .join('');
-                
-                // 填充风格选项
-                const translationStyleSelect = document.getElementById('translationStyle');
-                translationStyleSelect.innerHTML = styles
-                    .filter(style => style.is_enabled)
-                    .map(style => `<option value="${style.name}">${style.name} - ${style.description}</option>`)
-                    .join('');
-                
-                // 填充模板选项
-                const promptTemplateSelect = document.getElementById('promptTemplate');
-                promptTemplateSelect.innerHTML = templates
-                    .filter(template => template.is_enabled)
-                    .map(template => `<option value="${template.name}">${template.name} - ${template.description}</option>`)
-                    .join('');
-                
-                // 获取当前设置
-                fetch(`/api/translation_settings/${bookId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.settings) {
-                            if (data.settings.has_translated_fragments) {
-                                showConfirm(
-                                    '无法修改设置',
-                                    '该书籍已有翻译完成的碎片，无法修改翻译设置。如需使用不同的设置，请先删除该书籍后重新上传。',
-                                    () => {}
-                                );
-                                return;
-                            }
-                            targetLanguageSelect.value = data.settings.target_language;
-                            translationStyleSelect.value = data.settings.translation_style;
-                            promptTemplateSelect.value = data.settings.prompt_template;
-                            document.getElementById('customPrompt').value = data.settings.custom_prompt || '';
-                        }
-                        translationSettingsModal.show();
-                    });
-            });
+        // 加载模板列表
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/templates');
+                templates = await response.json();  // 保存到全局变量
+                renderTemplatesTable();
+            } catch (error) {
+                console.error('加载模板列表失败:', error);
+                showToast('加载模板列表失败', 'error');
+            }
         }
 
-        // 显示碎片详情
-        function showFragments(bookId) {
-            currentBookId = bookId;
-            loadFragments(bookId);
-            fragmentModal.show();
+        // 渲染语言表格
+        function renderLanguagesTable() {
+            const tbody = document.getElementById('languagesTableBody');
+            tbody.innerHTML = languages.map(lang => `
+                <tr>
+                    <td>${lang.name}</td>
+                    <td>${lang.description || ''}</td>
+                    <td>
+                        <span class="badge ${lang.is_enabled ? 'bg-success' : 'bg-secondary'}">
+                            ${lang.is_enabled ? '启用' : '禁用'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editLanguage(${lang.id})">编辑</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteLanguage(${lang.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        // 加载碎片列表
-        function loadFragments(bookId) {
-            fetch(`/api/book/${bookId}/fragments`)
-                .then(response => response.json())
-                .then(fragments => {
-                    const fragmentList = document.getElementById('fragmentList');
-                    fragmentList.innerHTML = fragments.map(fragment => `
-                        <div class="fragment-card">
-                            <div class="fragment-number">
-                                <i class="bi bi-hash"></i>碎片 ${fragment.number}
-                            </div>
-                            <div class="text-section">
-                                <strong><i class="bi bi-file-text me-2"></i>原文</strong>
-                                <p class="mb-0">${fragment.original_text}</p>
-                            </div>
-                            <div class="text-section">
-                                <strong><i class="bi bi-translate me-2"></i>译文</strong>
-                                <p class="mb-0">${fragment.translated_text || '未翻译'}</p>
-                            </div>
-                            ${!fragment.translated_text ? `
-                                <button class="btn btn-success mt-2" 
-                                        onclick="translateFragment(${fragment.id})">
-                                    <i class="bi bi-translate me-1"></i>翻译此段
-                                </button>
-                            ` : ''}
-                        </div>
-                    `).join('');
-                });
+        // 渲染风格表格
+        function renderStylesTable() {
+            const tbody = document.getElementById('stylesTableBody');
+            tbody.innerHTML = styles.map(style => `
+                <tr>
+                    <td>${style.name}</td>
+                    <td>${style.description || ''}</td>
+                    <td>
+                        <span class="badge ${style.is_enabled ? 'bg-success' : 'bg-secondary'}">
+                            ${style.is_enabled ? '启用' : '禁用'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editStyle(${style.id})">编辑</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteStyle(${style.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        // 翻译单个碎片
-        function translateFragment(fragmentId) {
-            showTranslationLog();
-            showLog('开始翻译片段...');
-            
-            fetch(`/api/translate/${fragmentId}`, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    showLog('片段翻译完成！', 'progress');
-                    loadBooks();
-                    loadFragments(currentBookId);
-                } else {
-                    showLog(`翻译出错: ${result.error}`, 'error');
-                }
-            })
-            .catch(error => {
-                showLog(`发生错误: ${error}`, 'error');
-            });
-        }
-
-        // 添加日志显示函数
-        function showLog(message, type = 'info') {
-            const logContent = document.getElementById('logContent');
-            const logItem = document.createElement('div');
-            logItem.className = `log-item ${type}-info`;
-            logItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            logContent.appendChild(logItem);
-            logContent.scrollTop = logContent.scrollHeight;
-        }
-
-        // 显示翻译日志区域
-        function showTranslationLog() {
-            document.getElementById('translationLog').classList.add('active');
-            document.getElementById('logContent').innerHTML = '';
-        }
-
-        // 修改翻译剩余碎片的函数
-        function translateRemaining(bookId) {
-            // 先检查是否已有翻译设置
-            fetch(`/api/translation_settings/${bookId}`)
-                .then(response => response.json())
-                .then(settings => {
-                    if (settings.has_settings) {
-                        // 如果已有设置，直接确认开始翻译
-                        showConfirm(
-                            '批量翻译确认',
-                            '确定要翻译所有未翻译的碎片吗？这可能需要一些时间。',
-                            () => startTranslation(bookId)
-                        );
-                    } else {
-                        // 如果没有设置，提示先设置
-                        showConfirm(
-                            '需要设置',
-                            '请先配置翻译设置后再开始翻译。',
-                            () => showTranslationSettings(bookId)
-                        );
-                    }
-                });
-        }
-
-        // 修改重新翻译函数
-        function retranslateAll(bookId) {
-            showConfirm(
-                '重新翻译确认',
-                '确定要重新翻译所有碎片吗？这将清空现有翻译内容，且需要一些时间。',
-                function() {
-                    showTranslationLog();
-                    showLog('开始重新翻译...');
-
-                    // 开始轮询翻译进度
-                    const progressInterval = setInterval(() => {
-                        fetch(`/api/translation_progress/${bookId}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.total > 0) {
-                                    const progress = Math.round((data.completed / data.total) * 100);
-                                    showLog(`翻译进度: ${progress}% (${data.completed}/${data.total})`);
-                                }
-                            });
-                    }, 1000);
-
-                    fetch(`/api/retranslate/${bookId}`, {
-                        method: 'POST'
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        clearInterval(progressInterval);
-                        if (result.success) {
-                            showLog('重新翻译完成！', 'progress');
-                            loadBooks();
-                            if (currentBookId === bookId) {
-                                loadFragments(bookId);
-                            }
-                        } else {
-                            showLog(`翻译出错: ${result.error}`, 'error');
-                        }
-                    })
-                    .catch(error => {
-                        clearInterval(progressInterval);
-                        showLog(`发生错误: ${error}`, 'error');
-                    });
-                }
-            );
-        }
-
-        // 导出文档
-        function exportBook(bookId) {
-            toggleLoading(true);
-            window.location.href = `/api/export/${bookId}`;
-            setTimeout(() => toggleLoading(false), 1000);
-        }
-
-        // 删除书籍
-        function deleteBook(bookId) {
-            showConfirm(
-                '删除确认',
-                '确定要删除这本书吗？此操作将永久删除该书籍及其所有翻译内容，且不可恢复。',
-                function() {
-                    toggleLoading(true);
-                    fetch(`/api/delete/${bookId}`, {
-                        method: 'DELETE'
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            loadBooks();
-                            if (currentBookId === bookId) {
-                                fragmentModal.hide();
-                            }
-                        } else {
-                            showConfirm('操作失败', result.error || '删除失败，请重试', () => {});
-                        }
-                    })
-                    .catch(error => {
-                        showConfirm('操作失败', error.toString(), () => {});
-                    })
-                    .finally(() => toggleLoading(false));
-                }
-            );
-        }
-
-        // 显示确认对话框
-        function showConfirm(title, message, callback) {
-            document.getElementById('confirmTitle').textContent = title;
-            document.getElementById('confirmMessage').textContent = message;
-            
-            const confirmButton = document.getElementById('confirmButton');
-            confirmButton.onclick = function() {
-                confirmModal.hide();
-                callback();
-            };
-            
-            confirmModal.show();
-        }
-
-        // 修改保存翻译设置函数
-        function saveTranslationSettings(bookId, settings) {
-            fetch(`/api/save_translation_settings/${bookId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(settings)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    translationSettingsModal.hide();
-                    showLog('翻译设置保存成功！', 'progress');
-                    loadBooks();  // 刷新书籍列表以显示新的设置
-                } else {
-                    showConfirm(
-                        '设置保存失败',
-                        result.error || '保存失败，请重试',
-                        () => {}
-                    );
-                }
-            })
-            .catch(error => {
-                showConfirm(
-                    '设置保存失败',
-                    error.toString(),
-                    () => {}
-                );
-            });
-        }
-
-        // 开始翻译
-        function startTranslation(bookId) {
-            showTranslationLog();
-            showLog('开始翻译...');
-
-            // 开始轮询翻译进度
-            const progressInterval = setInterval(() => {
-                fetch(`/api/translation_progress/${bookId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.total > 0) {
-                            const progress = Math.round((data.completed / data.total) * 100);
-                            showLog(`翻译进度: ${progress}% (${data.completed}/${data.total})`);
-                        }
-                    });
-            }, 1000);
-
-            fetch(`/api/translate_remaining/${bookId}`, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(result => {
-                clearInterval(progressInterval);
-                if (result.success) {
-                    showLog('翻译完成！', 'progress');
-                    loadBooks();
-                    if (currentBookId === bookId) {
-                        loadFragments(bookId);
-                    }
-                } else {
-                    showLog(`翻译出错: ${result.error}`, 'error');
-                }
-            })
-            .catch(error => {
-                clearInterval(progressInterval);
-                showLog(`发生错误: ${error}`, 'error');
-            });
+        // 渲染模板表格
+        function renderTemplatesTable() {
+            const tbody = document.getElementById('templatesTableBody');
+            tbody.innerHTML = templates.map(template => `
+                <tr>
+                    <td>${template.name}</td>
+                    <td>${template.description || ''}</td>
+                    <td>
+                        <span class="badge ${template.is_system ? 'bg-info' : 'bg-primary'}">
+                            ${template.is_system ? '系统' : '自定义'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge ${template.is_enabled ? 'bg-success' : 'bg-secondary'}">
+                            ${template.is_enabled ? '启用' : '禁用'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editTemplate(${template.id})">
+                            ${template.is_system ? '查看' : '编辑'}
+                        </button>
+                        ${!template.is_system ? `
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteTemplate(${template.id})">删除</button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
         }
 
         // 显示设置管理界面
         function showSettings() {
-            loadLanguages();
-            loadStyles();
-            loadTemplates();
+            initSettings();  // 加载所有数据
             settingsModal.show();
-        }
-
-        // 加载语言列表
-        function loadLanguages() {
-            fetch('/api/languages')
-                .then(response => response.json())
-                .then(languages => {
-                    const languagesList = document.getElementById('languagesTableBody');
-                    languagesList.innerHTML = languages.map(lang => `
-                        <tr>
-                            <td>${lang.name}</td>
-                            <td>${lang.description || ''}</td>
-                            <td>
-                                <span class="badge ${lang.is_enabled ? 'bg-success' : 'bg-secondary'}">
-                                    ${lang.is_enabled ? '启用' : '禁用'}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary" onclick="editLanguage(${lang.id})">编辑</button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteLanguage(${lang.id})">删除</button>
-                            </td>
-                        </tr>
-                    `).join('');
-                });
-        }
-
-        // 加载风格列表
-        function loadStyles() {
-            fetch('/api/styles')
-                .then(response => response.json())
-                .then(styles => {
-                    const stylesList = document.getElementById('stylesTableBody');
-                    stylesList.innerHTML = styles.map(style => `
-                        <tr>
-                            <td>${style.name}</td>
-                            <td>${style.description || ''}</td>
-                            <td>
-                                <span class="badge ${style.is_enabled ? 'bg-success' : 'bg-secondary'}">
-                                    ${style.is_enabled ? '启用' : '禁用'}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary" onclick="editStyle(${style.id})">编辑</button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteStyle(${style.id})">删除</button>
-                            </td>
-                        </tr>
-                    `).join('');
-                });
-        }
-
-        // 加载模板列表
-        function loadTemplates() {
-            fetch('/api/templates')
-                .then(response => response.json())
-                .then(templates => {
-                    const templatesList = document.getElementById('templatesTableBody');
-                    templatesList.innerHTML = templates.map(template => `
-                        <tr>
-                            <td>${template.name}</td>
-                            <td>${template.description || ''}</td>
-                            <td>
-                                <span class="badge ${template.is_system ? 'bg-info' : 'bg-primary'}">
-                                    ${template.is_system ? '系统' : '自定义'}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge ${template.is_enabled ? 'bg-success' : 'bg-secondary'}">
-                                    ${template.is_enabled ? '启用' : '禁用'}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary" onclick="editTemplate(${template.id})">
-                                    ${template.is_system ? '查看' : '编辑'}
-                                </button>
-                                ${!template.is_system ? `
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTemplate(${template.id})">删除</button>
-                                ` : ''}
-                            </td>
-                        </tr>
-                    `).join('');
-                });
         }
 
         // 语言管理相关函数
@@ -1396,7 +943,7 @@
             }
         }
 
-        function saveLanguage() {
+        async function saveLanguage() {
             const id = document.getElementById('languageId').value;
             const data = {
                 name: document.getElementById('languageName').value,
@@ -1404,64 +951,50 @@
                 is_enabled: document.getElementById('languageEnabled').checked
             };
             
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/api/languages/${id}` : '/api/languages';
-            
-            fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
+            try {
+                const url = id ? `/api/languages/${id}` : '/api/languages';
+                const method = id ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('languageModal')).hide();
-                    loadLanguages();
+                    await loadLanguages();
                     showToast('保存成功');
                 } else {
-                    showConfirm('保存失败', result.error || '操作失败，请重试', () => {});
+                    const error = await response.json();
+                    throw new Error(error.error || '保存失败');
                 }
-            });
+            } catch (error) {
+                console.error('保存语言失败:', error);
+                showToast(error.message || '保存失败', 'error');
+            }
         }
 
-        function deleteLanguage(id) {
-            showConfirm(
-                '删除确认',
-                '确定要删除这个语言吗？删除后不可恢复。',
-                function() {
-                    fetch(`/api/languages/${id}`, {
+        async function deleteLanguage(id) {
+            if (confirm('确定要删除这个语言吗？')) {
+                try {
+                    const response = await fetch(`/api/languages/${id}`, {
                         method: 'DELETE'
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            loadLanguages();
-                        } else {
-                            showConfirm('删除失败', result.error || '操作失败，请重试', () => {});
-                        }
                     });
+                    
+                    if (response.ok) {
+                        await loadLanguages();
+                        showToast('删除成功');
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.error || '删除失败');
+                    }
+                } catch (error) {
+                    console.error('删除语言失败:', error);
+                    showToast(error.message || '删除失败', 'error');
                 }
-            );
-        }
-
-        function toggleLanguage(id, enabled) {
-            fetch(`/api/languages/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ is_enabled: enabled })
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (!result.success) {
-                    showConfirm('操作失败', result.error || '更新失败，请重试', () => {
-                        loadLanguages();  // 刷新列表以恢复原状态
-                    });
-                }
-            });
+            }
         }
 
         // 风格管理相关函数
@@ -1484,7 +1017,7 @@
             }
         }
 
-        function saveStyle() {
+        async function saveStyle() {
             const id = document.getElementById('styleId').value;
             const data = {
                 name: document.getElementById('styleName').value,
@@ -1492,65 +1025,50 @@
                 is_enabled: document.getElementById('styleEnabled').checked
             };
             
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/api/styles/${id}` : '/api/styles';
-            
-            fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
+            try {
+                const url = id ? `/api/styles/${id}` : '/api/styles';
+                const method = id ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('styleModal')).hide();
-                    loadStyles();
+                    await loadStyles();
                     showToast('保存成功');
                 } else {
-                    showConfirm('保存失败', result.error || '操作失败，请重试', () => {});
+                    const error = await response.json();
+                    throw new Error(error.error || '保存失败');
                 }
-            });
+            } catch (error) {
+                console.error('保存风格失败:', error);
+                showToast(error.message || '保存失败', 'error');
+            }
         }
 
-        function deleteStyle(id) {
-            showConfirm(
-                '删除确认',
-                '确定要删除这个风格吗？删除后不可恢复。',
-                function() {
-                    fetch(`/api/styles/${id}`, {
+        async function deleteStyle(id) {
+            if (confirm('确定要删除这个风格吗？')) {
+                try {
+                    const response = await fetch(`/api/styles/${id}`, {
                         method: 'DELETE'
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            loadStyles();
-                            showToast('删除成功');
-                        } else {
-                            showConfirm('删除失败', result.error || '操作失败，请重试', () => {});
-                        }
                     });
+                    
+                    if (response.ok) {
+                        await loadStyles();
+                        showToast('删除成功');
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.error || '删除失败');
+                    }
+                } catch (error) {
+                    console.error('删除风格失败:', error);
+                    showToast(error.message || '删除失败', 'error');
                 }
-            );
-        }
-
-        function toggleStyle(id, enabled) {
-            fetch(`/api/styles/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ is_enabled: enabled })
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (!result.success) {
-                    showConfirm('操作失败', result.error || '更新失败，请重试', () => {
-                        loadStyles();  // 刷新列表以恢复原状态
-                    });
-                }
-            });
+            }
         }
 
         // 模板管理相关函数
@@ -1558,6 +1076,10 @@
             document.getElementById('templateModalTitle').textContent = '添加模板';
             document.getElementById('templateForm').reset();
             document.getElementById('templateId').value = '';
+            document.getElementById('templateName').disabled = false;
+            document.getElementById('templateDescription').disabled = false;
+            document.getElementById('templateContent').disabled = false;
+            document.querySelector('#templateModal .modal-footer .btn-primary').style.display = 'block';
             new bootstrap.Modal(document.getElementById('templateModal')).show();
         }
 
@@ -1582,7 +1104,7 @@
             }
         }
 
-        function saveTemplate() {
+        async function saveTemplate() {
             const id = document.getElementById('templateId').value;
             const data = {
                 name: document.getElementById('templateName').value,
@@ -1591,93 +1113,60 @@
                 is_enabled: document.getElementById('templateEnabled').checked
             };
             
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/api/templates/${id}` : '/api/templates';
-            
-            fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
+            try {
+                const url = id ? `/api/templates/${id}` : '/api/templates';
+                const method = id ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
-                    loadTemplates();
+                    await loadTemplates();
                     showToast('保存成功');
                 } else {
-                    showConfirm('保存失败', result.error || '操作失败，请重试', () => {});
+                    const error = await response.json();
+                    throw new Error(error.error || '保存失败');
                 }
-            });
+            } catch (error) {
+                console.error('保存模板失败:', error);
+                showToast(error.message || '保存失败', 'error');
+            }
         }
 
-        function deleteTemplate(id) {
-            showConfirm(
-                '删除确认',
-                '确定要删除这个模板吗？删除后不可恢复。',
-                function() {
-                    fetch(`/api/templates/${id}`, {
+        async function deleteTemplate(id) {
+            if (confirm('确定要删除这个模板吗？')) {
+                try {
+                    const response = await fetch(`/api/templates/${id}`, {
                         method: 'DELETE'
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            loadTemplates();
-                            showToast('删除成功');
-                        } else {
-                            showConfirm('删除失败', result.error || '操作失败，请重试', () => {});
-                        }
                     });
+                    
+                    if (response.ok) {
+                        await loadTemplates();
+                        showToast('删除成功');
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.error || '删除失败');
+                    }
+                } catch (error) {
+                    console.error('删除模板失败:', error);
+                    showToast(error.message || '删除失败', 'error');
                 }
-            );
-        }
-
-        function toggleTemplate(id, enabled) {
-            fetch(`/api/templates/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ is_enabled: enabled })
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (!result.success) {
-                    showConfirm('操作失败', result.error || '更新失败，请重试', () => {
-                        loadTemplates();  // 刷新列表以恢复原状态
-                    });
-                }
-            });
-        }
-
-        // 显示提示消息
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white bg-${type} border-0`;
-            toast.setAttribute('role', 'alert');
-            toast.setAttribute('aria-live', 'assertive');
-            toast.setAttribute('aria-atomic', 'true');
-            
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">${message}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            `;
-            
-            document.body.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-            
-            toast.addEventListener('hidden.bs.toast', () => {
-                document.body.removeChild(toast);
-            });
+            }
         }
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
+            // 初始化模态框
+            fragmentModal = new bootstrap.Modal(document.getElementById('fragmentModal'));
+            confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            translationSettingsModal = new bootstrap.Modal(document.getElementById('translationSettingsModal'));
+            settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
+            
             // 初始化设置管理
             initSettings();
             
@@ -1699,6 +1188,8 @@
                 });
             });
         });
+
+        // ... 其他代码保持不变 ...
     </script>
 </body>
 </html> 
