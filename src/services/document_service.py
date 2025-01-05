@@ -25,9 +25,17 @@ class DocumentService:
         with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
     
-    def split_text(self, text, max_length=500):
-        """将文本分割成碎片"""
-        # 简单按段落分割
+    def split_text(self, text):
+        """
+        将文本分割成碎片
+        使用配置的碎片大小、最小大小和重叠大小进行智能分割
+        """
+        # 获取配置值
+        max_length = Config.FRAGMENT_SIZE
+        min_length = Config.FRAGMENT_MIN_SIZE
+        overlap = Config.FRAGMENT_OVERLAP
+        
+        # 按段落分割
         paragraphs = text.split('\n\n')
         fragments = []
         current_fragment = ''
@@ -36,15 +44,38 @@ class DocumentService:
             paragraph = paragraph.strip()
             if not paragraph:
                 continue
+            
+            # 如果段落本身超过最大长度，需要进行分割
+            if len(paragraph) > max_length:
+                words = paragraph.split()
+                current_part = ''
                 
-            if len(current_fragment) + len(paragraph) <= max_length:
+                for word in words:
+                    if len(current_part) + len(word) + 1 <= max_length:
+                        current_part += (word + ' ')
+                    else:
+                        # 确保当前部分达到最小长度
+                        if len(current_part) >= min_length:
+                            fragments.append(current_part.strip())
+                            # 保留一部分内容作为重叠
+                            current_part = current_part[-overlap:] if overlap > 0 else ''
+                        current_part += (word + ' ')
+                
+                if current_part and len(current_part) >= min_length:
+                    fragments.append(current_part.strip())
+                continue
+            
+            # 处理正常大小的段落
+            if len(current_fragment) + len(paragraph) + 2 <= max_length:
                 current_fragment += paragraph + '\n\n'
             else:
-                if current_fragment:
+                # 确保当前碎片达到最小长度
+                if current_fragment and len(current_fragment) >= min_length:
                     fragments.append(current_fragment.strip())
                 current_fragment = paragraph + '\n\n'
         
-        if current_fragment:
+        # 添加最后一个碎片
+        if current_fragment and len(current_fragment) >= min_length:
             fragments.append(current_fragment.strip())
         
         return fragments 

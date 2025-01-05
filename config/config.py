@@ -21,6 +21,11 @@ class Config:
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
     ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx'}
     
+    # 文本切割配置
+    FRAGMENT_SIZE = int(os.getenv('FRAGMENT_SIZE', '500'))  # 文本碎片大小（字符数）
+    FRAGMENT_MIN_SIZE = int(os.getenv('FRAGMENT_MIN_SIZE', '100'))  # 最小碎片大小
+    FRAGMENT_OVERLAP = int(os.getenv('FRAGMENT_OVERLAP', '50'))  # 碎片重叠大小
+    
     # OpenAI配置
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')  # 必需的配置，不提供默认值
     OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')  # 默认使用 gpt-3.5-turbo
