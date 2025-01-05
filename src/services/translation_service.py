@@ -2,6 +2,8 @@ from openai import OpenAI
 from config.config import Config
 import logging
 import time
+from src.models.settings import OpenAISettings
+from src.database import db
 
 # 配置日志
 logging.basicConfig(
@@ -107,19 +109,30 @@ class TranslationService:
     }
     
     def __init__(self):
-        """初始化OpenAI客户端"""
+        """初始化翻译服务"""
+        self.client = None
+        self.model = None
         try:
-            self.client = OpenAI(
-                api_key=Config.OPENAI_API_KEY,
-                base_url=Config.OPENAI_API_BASE or None,
-                organization=Config.OPENAI_ORGANIZATION or None,
-                timeout=Config.TIMEOUT
-            )
-            self.model = Config.OPENAI_MODEL
-            logging.info(f"翻译服务初始化完成，使用模型：{self.model}")
+            self._init_client()
         except Exception as e:
-            logging.error(f"翻译服务初始化失败: {str(e)}")
-            raise Exception(f"翻译服务初始化失败: {str(e)}")
+            logging.warning(f"翻译服务初始化时出现警告: {str(e)}")
+            logging.info("请在设置中配置OpenAI API密钥")
+    
+    def _init_client(self):
+        """初始化OpenAI客户端"""
+        # 从数据库获取设置
+        settings = OpenAISettings.query.first()
+        if not settings or not settings.api_key:
+            raise Exception("未配置OpenAI API密钥")
+        
+        self.client = OpenAI(
+            api_key=settings.api_key,
+            base_url=settings.api_base or None,
+            organization=settings.organization or None,
+            timeout=Config.TIMEOUT
+        )
+        self.model = settings.model_name or Config.OPENAI_MODEL
+        logging.info(f"翻译服务初始化完成，使用模型：{self.model}")
 
     def translate(self, text, target_lang=None, style=None, custom_prompt=None):
         """
@@ -131,6 +144,12 @@ class TranslationService:
         :return: 翻译后的文本
         :raises: Exception 当翻译失败时
         """
+        if not self.client:
+            try:
+                self._init_client()
+            except Exception as e:
+                raise Exception("请先在设置中配置OpenAI API密钥")
+        
         start_time = time.time()
         text_preview = text[:100] + '...' if len(text) > 100 else text
         logging.info(f"开始翻译文本: {text_preview}")

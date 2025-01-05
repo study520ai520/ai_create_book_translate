@@ -2,6 +2,7 @@ from flask import Flask, render_template
 from src.database import db
 from src.api.book_api import book_api
 from src.api.settings_api import settings_api
+from src.api.translation_api import translation_api
 from config.config import config
 import os
 
@@ -29,6 +30,7 @@ def create_app(config_name='default'):
     # 注册蓝图
     app.register_blueprint(book_api, url_prefix='/api')
     app.register_blueprint(settings_api, url_prefix='/api')
+    app.register_blueprint(translation_api, url_prefix='/api')
     
     # 添加主页路由
     @app.route('/')
@@ -179,18 +181,6 @@ def create_app(config_name='default'):
                     'name': '学术论文模板',
                     'description': '适合学术论文的翻译',
                     'template': '请将以下学术文本翻译成{target_language}，使用学术规范的表达方式，保持{translation_style}的风格，确保专业术语的准确性：\n\n{text}',
-                    'is_system': True
-                },
-                {
-                    'name': '新闻报道模板',
-                    'description': '适合新闻文章的翻译',
-                    'template': '请将以下新闻文本翻译成{target_language}，采用新闻报道的语气，保持{translation_style}的风格，确保信息准确客观：\n\n{text}',
-                    'is_system': True
-                },
-                {
-                    'name': '简明总结模板',
-                    'description': '适合需要简明扼要翻译的场景',
-                    'template': '请将以下文本翻译成{target_language}，采用简明扼要的方式，保持{translation_style}的风格，突出重点信息：\n\n{text}',
                     'is_system': True
                 }
             ]
