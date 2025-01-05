@@ -55,11 +55,26 @@ class BookManager {
                     </div>
                 </div>
                 <div class="action-buttons">
-                    ${!book.has_translation_settings ? `
+                    ${book.has_translation_settings ? `
+                        ${book.progress === 0 ? `
+                            <button class="btn btn-primary" onclick="bookManager.translateBook(${book.id})">
+                                <i class="bi bi-translate"></i> 开始翻译
+                            </button>
+                        ` : book.progress < 100 ? `
+                            <button class="btn btn-primary" onclick="bookManager.translateRemaining(${book.id})">
+                                <i class="bi bi-translate"></i> 继续翻译
+                            </button>
+                        ` : ''}
+                        ${book.progress === 0 ? `
+                            <button class="btn btn-warning" onclick="translationSettingsManager.showSettings(${book.id})">
+                                <i class="bi bi-gear"></i> 修改翻译参数
+                            </button>
+                        ` : ''}
+                    ` : `
                         <button class="btn btn-primary" onclick="translationSettingsManager.showSettings(${book.id})">
                             <i class="bi bi-gear"></i> 设置翻译参数
                         </button>
-                    ` : ''}
+                    `}
                     <button class="btn btn-info" onclick="bookManager.showFragments(${book.id})">
                         <i class="bi bi-list-ul"></i> 查看碎片
                     </button>
@@ -185,6 +200,80 @@ class BookManager {
                 showToast('删除失败', 'error');
             }
         }
+    }
+
+    // 翻译整本书
+    async translateBook(bookId) {
+        if (!confirm('确定要开始翻译这本书吗？')) return;
+        
+        try {
+            showLoading();
+            const response = await fetch(`/api/translate_remaining/${bookId}`, {
+                method: 'POST'
+            });
+            
+            if (!response.ok) throw new Error('翻译失败');
+            
+            showToast('翻译任务已启动');
+            this.startTranslationProgress(bookId);
+        } catch (error) {
+            console.error('翻译失败:', error);
+            showToast('翻译失败', 'error');
+            hideLoading();
+        }
+    }
+
+    // 继续翻译未完成的部分
+    async translateRemaining(bookId) {
+        if (!confirm('确定要继续翻译未完成的部分吗？')) return;
+        
+        try {
+            showLoading();
+            const response = await fetch(`/api/translate_remaining/${bookId}`, {
+                method: 'POST'
+            });
+            
+            if (!response.ok) throw new Error('翻译失败');
+            
+            showToast('翻译任务已启动');
+            this.startTranslationProgress(bookId);
+        } catch (error) {
+            console.error('翻译失败:', error);
+            showToast('翻译失败', 'error');
+            hideLoading();
+        }
+    }
+
+    // 监控翻译进度
+    startTranslationProgress(bookId) {
+        const progressCheck = async () => {
+            try {
+                const response = await fetch(`/api/translation_progress/${bookId}`);
+                if (!response.ok) throw new Error('获取进度失败');
+                
+                const progress = await response.json();
+                if (progress.completed === progress.total) {
+                    // 翻译完成
+                    hideLoading();
+                    await this.loadBooks();
+                    showToast('翻译完成');
+                    return;
+                }
+                
+                // 更新进度显示
+                const percent = Math.round((progress.completed / progress.total) * 100);
+                showToast(`翻译进度: ${percent}%`, 'info');
+                
+                // 继续检查进度
+                setTimeout(progressCheck, 2000);
+            } catch (error) {
+                console.error('获取翻译进度失败:', error);
+                hideLoading();
+            }
+        };
+        
+        // 开始检查进度
+        progressCheck();
     }
 }
 
