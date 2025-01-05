@@ -27,10 +27,6 @@ class Config:
     # OpenAI配置
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
     OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
-    DEFAULT_TRANSLATION_PROMPT = os.getenv('DEFAULT_TRANSLATION_PROMPT', 
-        "请将以下文本翻译成{target_lang}，保持原文的语气和风格：\n\n{text}")
-    DEFAULT_TARGET_LANG = os.getenv('DEFAULT_TARGET_LANG', '中文')
-    DEFAULT_TRANSLATION_STYLE = os.getenv('DEFAULT_TRANSLATION_STYLE', '准确、流畅')
 
 class DevelopmentConfig(Config):
     DEBUG = True
